@@ -1,6 +1,6 @@
 # 1 OpenNoC 介绍
 
-OpenNoC 是基于 AMBA CHI 协议实现的，协议版本为 0050E.b，用来进行连接多核、内存控制器和外设的一个总线。目前 OpenNoC 实现了 HNF 和 XP, 该仓库主要包含 HNF & SXP 源码以及一些 testbench.
+OpenNoC 是基于 AMBA CHI 协议实现的，协议版本为 0050E.b，用来进行连接多核、内存控制器和外设的一个总线。目前 OpenNoC 实现了 HNF, HNI 和 XP, 该仓库主要包含 HNF & SXP 源码以及一些 testbench.
 
 # 2 目录说明
 ```
@@ -11,7 +11,9 @@ OpenNoC 是基于 AMBA CHI 协议实现的，协议版本为 0050E.b，用来进
 └── rtl                       // verilog code
     ├── include               // header files, including macro definitions.
     ├── misc                  // SXP and miscellaneous files
-    └── src                   // main code
+    ├── src                   
+    │   ├── hnf               // HN-F Component code
+    │   └── hni               // HN-I Component code
     └── tb                    // test top
     └── case                  // test case
     └── Makefile              // compile script
