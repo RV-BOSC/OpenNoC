@@ -2,9 +2,11 @@ VCS ?= vcs
 FILE_LIST_TB = file_list_tb.f
 TOP_SRC = hnf
 TOP_TB = tb_hnf
+# TOP_TB = tb_rni
 SIMV = simv
-VCS_OPTS ?= -full64 +v2k -q -sverilog -fsdb +incdir+include+misc -Mupdate
-VCS_OPTS += -debug_acc+dmptf -debug_region+cell+encrypt \
+VCS_OPTS ?= -full64 +v2k -q -sverilog -fsdb +incdir+include+misc -Mupdate -debug_acc+dmptf -debug_region+cell+encrypt
+ifeq ($(TOP_TB), tb_hnf)
+VCS_OPTS_HNF += $(VCS_OPTS)\
 -pvalue+CHIE_REQ_ADDR_WIDTH_PARAM=44\
 -pvalue+CHIE_SNP_ADDR_WIDTH_PARAM=41\
 -pvalue+CHIE_NID_WIDTH_PARAM=7\
@@ -25,9 +27,13 @@ VCS_OPTS += -debug_acc+dmptf -debug_region+cell+encrypt \
 -pvalue+HNF_MSHR_ENTRIES_WIDTH_PARAM=5\
 -pvalue+HNF_L3_CACHE_SIZE_PARAM=4096\
 -pvalue+HNF_L3_WAY_NUM_PARAM=16
+VCS_OPTS_TB  := $(VCS_OPTS_HNF) +incdir+src+misc -top $(TOP_TB)
+else ifeq ($(TOP_TB), tb_rni)
+VCS_OPTS_RNI += $(VCS_OPTS) +define+ASSERT_CHECKER_ON
+VCS_OPTS_TB  := $(VCS_OPTS_RNI) +incdir+src+misc -top $(TOP_TB)
+endif 
 VCS_V2005 = -full64 +v2k -q -v2005 -fsdb +incdir+include+misc -debug_acc+dmptf -debug_region+cell+encrypt -Mupdate
-VCS_OPTS_SRC := $(VCS_OPTS) -top $(TOP_SRC)
-VCS_OPTS_TB  := $(VCS_OPTS) +incdir+src+misc -top $(TOP_TB)
+VCS_OPTS_SRC := $(VCS_OPTS_HNF) -top $(TOP_SRC)
 all:com sim
 com:
 	$(VCS) $(VCS_OPTS_TB) -o $(SIMV) -f $(FILE_LIST_TB)
