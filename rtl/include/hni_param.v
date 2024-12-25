@@ -25,10 +25,12 @@
      parameter CHIE_BE_WIDTH_PARAM          = 32,    \
      parameter CHIE_DATACHECK_WIDTH_PARAM   = 32,    \
      parameter CHIE_POISON_WIDTH_PARAM      = 4,     \
+     parameter CHIE_REQ_RSVDC_WIDTH_PARAM   = 0,     \
+     parameter CHIE_DAT_RSVDC_WIDTH_PARAM   = 0,     \
      parameter HNI_MSHR_RNF_NUM_PARAM       = 4,     \
-     parameter AXI_AXADDR_WIDTH_PARAM       = 32,    \
-     parameter AXI_AXDATA_WIDTH_PARAM       = 128,   \
-     parameter DEV_XP_LL_CRD_COUNT_PARAM    = 15,    \
+     parameter AXI4_PA_WIDTH_PARAM          = 32,    \
+     parameter AXI4_AXDATA_WIDTH_PARAM      = 128,   \
+     parameter XP_LCRD_NUM_PARAM            = 15,    \
      parameter HNI_MSHR_EXCL_RN_NUM_PARAM   = 32,    \
      parameter HNI_MSHR_EXCL_RN_WIDTH_PARAM = 5,     \
      parameter HNI_MSHR_ENTRIES_NUM_PARAM   = 32,    \
@@ -45,10 +47,12 @@
     .CHIE_BE_WIDTH_PARAM                (CHIE_BE_WIDTH_PARAM               ), \
     .CHIE_DATACHECK_WIDTH_PARAM         (CHIE_DATACHECK_WIDTH_PARAM        ), \
     .CHIE_POISON_WIDTH_PARAM            (CHIE_POISON_WIDTH_PARAM           ), \
+    .CHIE_REQ_RSVDC_WIDTH_PARAM         (CHIE_REQ_RSVDC_WIDTH_PARAM        ), \
+    .CHIE_DAT_RSVDC_WIDTH_PARAM         (CHIE_DAT_RSVDC_WIDTH_PARAM        ), \
     .HNI_MSHR_RNF_NUM_PARAM             (HNI_MSHR_RNF_NUM_PARAM            ), \
-    .AXI_AXADDR_WIDTH_PARAM             (AXI_AXADDR_WIDTH_PARAM            ), \
-    .AXI_AXDATA_WIDTH_PARAM             (AXI_AXDATA_WIDTH_PARAM            ), \
-    .DEV_XP_LL_CRD_COUNT_PARAM          (DEV_XP_LL_CRD_COUNT_PARAM         ), \
+    .AXI4_PA_WIDTH_PARAM                (AXI4_PA_WIDTH_PARAM               ), \
+    .AXI4_AXDATA_WIDTH_PARAM            (AXI4_AXDATA_WIDTH_PARAM           ), \
+    .XP_LCRD_NUM_PARAM                  (XP_LCRD_NUM_PARAM                 ), \
     .HNI_MSHR_EXCL_RN_NUM_PARAM         (HNI_MSHR_EXCL_RN_NUM_PARAM        ), \
     .HNI_MSHR_EXCL_RN_WIDTH_PARAM       (HNI_MSHR_EXCL_RN_WIDTH_PARAM      ), \
     .HNI_MSHR_ENTRIES_NUM_PARAM         (HNI_MSHR_ENTRIES_NUM_PARAM        ), \

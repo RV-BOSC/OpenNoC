@@ -139,7 +139,11 @@ module hni_qos `HNI_PARAM
     wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             ret_cnt_h_en_s1;
     wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             ret_cnt_l_en_s1;
     wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             ret_cnt_h_zero;
+    wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             ret_cnt_h_one;
+    wire                                             retry_h_num_one;
     wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             ret_cnt_l_zero;
+    wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             ret_cnt_l_one;
+    wire                                             retry_l_num_one;
     wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             h_retry_req_entry;
     wire [`HNI_RET_BANK_ENTRIES_NUM-1:0]             l_retry_req_entry;
     wire                                             high_present;
@@ -604,6 +608,9 @@ module hni_qos `HNI_PARAM
 
             assign ret_cnt_h_zero[ret_entry]  = ret_cnt_h_entry_s2_q[ret_entry] == {`HNI_RET_BANK_CNT_WIDTH{1'b0}};
 
+            assign ret_cnt_h_one[ret_entry]  = (ret_cnt_h_entry_s2_q[ret_entry] == 1'b1) & (~(ret_cnt_h_inc_s0[ret_entry] == 1'b1));
+            assign retry_h_num_one = |ret_cnt_h_one;
+
             //retry bank low count
             assign ret_cnt_l_inc_s0[ret_entry] = ret_is_l_s0 & ret_cnt_inc_ptr_s0[ret_entry];
             assign ret_cnt_l_dec_s1[ret_entry] = (l_present_win_sx1_q & pcrdgrant_fifo_push & ~ret_cnt_l_zero[ret_entry] & ret_cnt_l_dec_ptr_sx1[ret_entry]);
@@ -630,6 +637,9 @@ module hni_qos `HNI_PARAM
             end
 
             assign ret_cnt_l_zero[ret_entry]  = ret_cnt_l_entry_s2_q[ret_entry] == {`HNI_RET_BANK_CNT_WIDTH{1'b0}};
+
+            assign ret_cnt_l_one[ret_entry]  = (ret_cnt_l_entry_s2_q[ret_entry] == 1'b1) & (~(ret_cnt_l_inc_s0[ret_entry] == 1'b1));
+            assign retry_l_num_one = |ret_cnt_l_one;
         end
     endgenerate
 
@@ -637,9 +647,9 @@ module hni_qos `HNI_PARAM
 
     assign l_retry_req_entry = (ret_bank_entry_v_s1_q & ~ret_cnt_l_zero) | ret_cnt_l_inc_s0;
 
-    assign high_present = |(h_retry_req_entry & ~ret_cnt_h_dec_s1);
+    assign high_present = retry_h_num_one ? (|(h_retry_req_entry & ~ret_cnt_h_dec_s1)) : (|h_retry_req_entry);
 
-    assign low_present = |(l_retry_req_entry & ~ret_cnt_l_dec_s1);
+    assign low_present = retry_l_num_one ? (|(l_retry_req_entry & ~ret_cnt_l_dec_s1)) : (|l_retry_req_entry);
 
     //pcrdgrant and starvation logic
     //disable logic

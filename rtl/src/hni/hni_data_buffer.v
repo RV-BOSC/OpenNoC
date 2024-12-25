@@ -79,14 +79,12 @@ module hni_data_buffer `HNI_PARAM
         rresp,
         rlast,
         rvalid,
-        ruser,
         rready,
 
         wdata,
         wstrb,
         wlast,
         wvalid,
-        wuser,
         wready
     );
 
@@ -100,13 +98,13 @@ module hni_data_buffer `HNI_PARAM
 
     //inputs from hni_mshr
     input wire                                      rxreq_dbf_en_s0;
-    input wire [10:0]                               rxreq_dbf_axid_s0; //slave id
+    input wire [`HNI_AXI4_AXID_WIDTH-1:0]           rxreq_dbf_axid_s0; //slave id
     input wire [`HNI_MSHR_ENTRIES_WIDTH-1:0]        rxreq_dbf_entry_idx_s0; //allocate entry idx
     input wire                                      rxreq_dbf_wr_s0;   //write txn or read txn
     input wire [`CHIE_REQ_FLIT_ADDR_WIDTH-1:0]      rxreq_dbf_addr_s0;
     input wire                                      rxreq_dbf_device_s0;
     input wire [`CHIE_REQ_FLIT_SIZE_WIDTH-1:0]      rxreq_dbf_size_s0;//rxdata/txdata size
-    input wire [`AXI_AXLEN_WIDTH-1:0]               rxreq_dbf_axlen_s0;
+    input wire [`AXI4_AWLEN_WIDTH-1:0]              rxreq_dbf_axlen_s0;
 
     input wire                                      mshr_retired_valid_sx;
     input wire [`HNI_MSHR_ENTRIES_WIDTH-1:0]        mshr_retired_idx_sx;
@@ -149,18 +147,16 @@ module hni_data_buffer `HNI_PARAM
 
     //inout with axi slaves
     input  wire [10:0]                              rid;
-    input  wire [`AXI_AXDATA_WIDTH-1:0]             rdata;
+    input  wire [`AXI4_RDATA_WIDTH-1:0]             rdata;
     input  wire [1:0]                               rresp;
     input  wire                                     rlast;
     input  wire                                     rvalid;
-    input  wire                                     ruser;
     output wire                                     rready;
 
-    output reg [`AXI_AXDATA_WIDTH-1:0]              wdata;
-    output reg [((`AXI_AXDATA_WIDTH/8))-1:0]        wstrb;
+    output reg [`AXI4_WDATA_WIDTH-1:0]              wdata;
+    output reg [`AXI4_WSTRB_WIDTH-1:0]              wstrb;
     output reg                                      wlast;
     output wire                                     wvalid;
-    output wire                                     wuser;
     input  wire                                     wready;
 
     //internal signals
@@ -170,13 +166,13 @@ module hni_data_buffer `HNI_PARAM
     reg [`HNI_MASK_CD_RANGE]                 dbf_wr_cdmask_q[0:`HNI_MSHR_ENTRIES_NUM-1]; 
     reg [`HNI_MASK_WL_RANGE]                 dbf_wr_wlmask_q[0:`HNI_MSHR_ENTRIES_NUM-1]; 
     reg [1:0]                                rxreq_alloc_ccid_q[0:`HNI_MSHR_ENTRIES_NUM-1];
-    reg [10:0]                               rxreq_alloc_axid_q[0:`HNI_MSHR_ENTRIES_NUM-1];
+    reg [`HNI_AXI4_AXID_WIDTH-1:0]           rxreq_alloc_axid_q[0:`HNI_MSHR_ENTRIES_NUM-1];
     reg [`CHIE_REQ_FLIT_SIZE_WIDTH-1:0]      rxreq_alloc_size_q[0:`HNI_MSHR_ENTRIES_NUM-1];
     reg [`HNI_MSHR_ENTRIES_NUM-1:0]          rready_q;
     reg [`HNI_MSHR_ENTRIES_NUM-1:0]          rready_rst_q;
     reg [1:0]                                rresp_q[0:`HNI_MSHR_ENTRIES_NUM-1];
     reg [`HNI_MSHR_ENTRIES_NUM-1:0]          rxreq_dbf_wr_q;
-    reg [`AXI_AXDATA_WIDTH*4-1:0]            rdata_receive;
+    reg [`AXI4_RDATA_WIDTH*4-1:0]            rdata_receive;
     reg [10:0]                               axid_current;
     reg [`HNI_MASK_CD_RANGE]                 rd_cdmask_current;
     reg [`CHIE_DAT_FLIT_DATA_WIDTH*2-1:0]    dbf_data_q[0:`HNI_MSHR_ENTRIES_NUM-1];
@@ -250,7 +246,7 @@ module hni_data_buffer `HNI_PARAM
                             : ((rxreq_dbf_addr_s0[5:4] == 2'b10 && ~align_256b_ccid_10_len_4) ? 4'b0100
                             : ((rxreq_dbf_addr_s0[5:4] == 2'b11 && align_256b_ccid_11_len_1) ? 4'b1000
                             : ((rxreq_dbf_addr_s0[5:4] == 2'b11 && align_256b_ccid_11_len_2) ? 4'b0100 
-			                : ((rxreq_dbf_addr_s0[5:4] == 2'b11 && align_256b_ccid_11_len_4) ? 4'b0001 : 4'b0000))))))));
+			                : ((rxreq_dbf_addr_s0[5:4] == 2'b11 && align_256b_ccid_11_len_4) ? 4'b0001 : 4'b0000)))))))); 
                         
     always @* begin: dbf_wlmask_comb_logic
         if(rxreq_dbf_device_s0)begin
@@ -425,7 +421,7 @@ module hni_data_buffer `HNI_PARAM
         //rxreq allocate info
             always@(posedge clk or posedge rst)begin:ccid_axid_timing_logic
                 if(rst)begin
-                    rxreq_alloc_axid_q[i]     <= 11'b0;
+                    rxreq_alloc_axid_q[i]     <= {`HNI_AXI4_AXID_WIDTH{1'b0}};
                     rxreq_alloc_ccid_q[i]     <= 2'b0;
                     rxreq_alloc_size_q[i]     <= 3'b0;
                 end
@@ -435,7 +431,7 @@ module hni_data_buffer `HNI_PARAM
                     rxreq_alloc_size_q[i]     <= rxreq_dbf_size_s0;
                 end
                 else if(mshr_retired_valid_sx && i == mshr_retired_idx_sx)begin
-                    rxreq_alloc_axid_q[i]     <= 11'b0;
+                    rxreq_alloc_axid_q[i]     <= {`HNI_AXI4_AXID_WIDTH{1'b0}};
                     rxreq_alloc_ccid_q[i]     <= 2'b0;
                     rxreq_alloc_size_q[i]     <= 3'b0;
                 end
@@ -527,18 +523,18 @@ module hni_data_buffer `HNI_PARAM
         axid_current = 11'b0;
         for(entry=0; entry<`HNI_MSHR_ENTRIES_NUM; entry = entry+1)begin
             if (rready_q[entry] && rvalid && (rid == rxreq_alloc_axid_q[entry]))begin
-                rd_cdmask_current = dbf_rd_cdmask_q[entry];
+                rd_cdmask_current = dbf_rd_cdmask_q[entry];    
                 axid_current = rxreq_alloc_axid_q[entry];
             end
         end
     end
 
-    always@(*) begin:receive_rdata_comb_logic
-        rdata_receive = {`AXI_AXDATA_WIDTH*4{1'b0}};
+    always@(*) begin:receive_rdata_comb_logic          
+        rdata_receive = {`AXI4_RDATA_WIDTH*4{1'b0}};
         if (rvalid && rready && (rid == axid_current)) begin
             for(j=0;j<4;j=j+1) begin
                 if(rd_cdmask_current[j] == 1)begin
-                    rdata_receive[j*`AXI_AXDATA_WIDTH+:`AXI_AXDATA_WIDTH] = rdata;
+                    rdata_receive[j*`AXI4_RDATA_WIDTH+:`AXI4_RDATA_WIDTH] = rdata;
                 end
             end
         end
@@ -621,6 +617,14 @@ module hni_data_buffer `HNI_PARAM
         end
     end
 
+    generate
+        if(CHIE_DAT_RSVDC_WIDTH_PARAM != 0)begin
+            always @*begin
+                txdat_flit[`CHIE_DAT_FLIT_RSVDC_RANGE]    = {`CHIE_DAT_FLIT_RSVDC_WIDTH{1'b0}};
+            end
+        end
+    endgenerate
+
     //data to txdat
     always@(*)begin:txdat_package_comb_logic
         txdat_flit[`CHIE_DAT_FLIT_QOS_RANGE]       = {`CHIE_DAT_FLIT_QOS_WIDTH{1'b0}};
@@ -666,7 +670,6 @@ module hni_data_buffer `HNI_PARAM
     endgenerate
 
     assign wvalid = |wvalid_q;
-    assign wuser  = 1'b0;
 
     always@(*)begin: current_wr_mask_wdata_wstrb_comb_logic
         wr_cdmask_current = {`HNI_MASK_CD_WIDTH{1'b0}};
@@ -724,35 +727,35 @@ module hni_data_buffer `HNI_PARAM
     endgenerate
 
     always@(*) begin:send_data_to_slave_comb_logic
-        wdata = {`AXI_AXDATA_WIDTH{1'b0}};
-        wstrb = {`AXI_AXDATA_WIDTH/8{1'b0}};
+        wdata = {`AXI4_WDATA_WIDTH{1'b0}};
+        wstrb = {`AXI4_WSTRB_WIDTH{1'b0}};
         wlast = 1'b0;
         if(wvalid)begin
             if(wr_cdmask_current == wr_wlmask_current)begin
                 wlast = 1'b1;
                 for(j=0;j<4;j=j+1) begin
                     if(wr_cdmask_current[j] == 1)begin
-                        wdata = wdata_current[j*`AXI_AXDATA_WIDTH+:`AXI_AXDATA_WIDTH];
-                        wstrb = wstrb_current[j*16+:16];
+                        wdata = wdata_current[j*`AXI4_WDATA_WIDTH+:`AXI4_WDATA_WIDTH];
+                        wstrb = wstrb_current[j*`AXI4_WSTRB_WIDTH+:`AXI4_WSTRB_WIDTH];
                     end
                 end
             end
             else begin
                 if(wr_cdmask_current == 4'b0001)begin
-                    wdata = wdata_current[0*`AXI_AXDATA_WIDTH+:`AXI_AXDATA_WIDTH];
-                    wstrb = wstrb_current[0*16+:16];
+                    wdata = wdata_current[0*`AXI4_WDATA_WIDTH+:`AXI4_WDATA_WIDTH];
+                    wstrb = wstrb_current[0*`AXI4_WSTRB_WIDTH+:`AXI4_WSTRB_WIDTH];
                 end
                 else if(wr_cdmask_current == 4'b0010)begin
-                    wdata = wdata_current[1*`AXI_AXDATA_WIDTH+:`AXI_AXDATA_WIDTH];
-                    wstrb = wstrb_current[1*16+:16];
+                    wdata = wdata_current[1*`AXI4_WDATA_WIDTH+:`AXI4_WDATA_WIDTH];
+                    wstrb = wstrb_current[1*`AXI4_WSTRB_WIDTH+:`AXI4_WSTRB_WIDTH];
                 end
                 else if(wr_cdmask_current == 4'b0100)begin
-                    wdata = wdata_current[2*`AXI_AXDATA_WIDTH+:`AXI_AXDATA_WIDTH];
-                    wstrb = wstrb_current[2*16+:16];
+                    wdata = wdata_current[2*`AXI4_WDATA_WIDTH+:`AXI4_WDATA_WIDTH];
+                    wstrb = wstrb_current[2*`AXI4_WSTRB_WIDTH+:`AXI4_WSTRB_WIDTH];
                 end
                 else if(wr_cdmask_current == 4'b1000)begin
-                    wdata = wdata_current[3*`AXI_AXDATA_WIDTH+:`AXI_AXDATA_WIDTH];
-                    wstrb = wstrb_current[3*16+:16];
+                    wdata = wdata_current[3*`AXI4_WDATA_WIDTH+:`AXI4_WDATA_WIDTH];
+                    wstrb = wstrb_current[3*`AXI4_WSTRB_WIDTH+:`AXI4_WSTRB_WIDTH];
                 end
             end
         end

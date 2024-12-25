@@ -159,6 +159,15 @@ module hnf_link_txreq_wrap `HNF_PARAM
     assign txreq_crd_cnt_inc_sx    = txreqcrdv_s0;
     assign txreq_req_s0            = (mshr_txreq_bypass_valid_s1 | mshr_txreq_valid_sx1_q);
 
+    generate
+        if(CHIE_REQ_RSVDC_WIDTH_PARAM != 0)begin
+            always @*begin
+                txreqflit_bypass_s1[`CHIE_REQ_FLIT_RSVDC_RANGE] = {`CHIE_REQ_FLIT_RSVDC_WIDTH{1'b0}};
+                txreqflit_sx1[`CHIE_REQ_FLIT_RSVDC_RANGE]       = {`CHIE_REQ_FLIT_RSVDC_WIDTH{1'b0}};
+            end
+        end
+    endgenerate
+
     always @*begin
         txreqflit_bypass_s1[`CHIE_REQ_FLIT_QOS_RANGE]          =  mshr_txreq_bypass_qos_s1;
         txreqflit_bypass_s1[`CHIE_REQ_FLIT_TGTID_RANGE]        = SNF_NID_PARAM;

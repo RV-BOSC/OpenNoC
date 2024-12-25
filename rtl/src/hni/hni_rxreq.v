@@ -163,7 +163,7 @@ module hni_rxreq `HNI_PARAM
 
     always @(posedge clk or posedge rst) begin: rxreq_crd_cnt_s1_q_logic_t
         if (rst == 1'b1)
-            rxreq_crd_cnt_s1_q <= DEV_XP_LL_CRD_COUNT_PARAM;
+            rxreq_crd_cnt_s1_q <= XP_LCRD_NUM_PARAM;
         else if (rxreq_crd_cnt_upd_s1 == 1'b1)
             rxreq_crd_cnt_s1_q <= rxreq_crd_cnt_nxt_s1;
     end

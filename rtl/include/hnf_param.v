@@ -24,6 +24,8 @@
      parameter CHIE_BE_WIDTH_PARAM          = 32,    \
      parameter CHIE_DATACHECK_WIDTH_PARAM   = 32,    \
      parameter CHIE_POISON_WIDTH_PARAM      = 4,     \
+     parameter CHIE_REQ_RSVDC_WIDTH_PARAM   = 0,     \
+     parameter CHIE_DAT_RSVDC_WIDTH_PARAM   = 0,     \
      parameter HNF_MSHR_RNF_NUM_PARAM       = 4,     \
      parameter RNF_NID_LIST_PARAM           = {7'd48,7'd16,7'd40,7'd8}, \
      parameter HNF_NID_PARAM                = 0,     \
@@ -46,6 +48,8 @@
     .CHIE_BE_WIDTH_PARAM                (CHIE_BE_WIDTH_PARAM               ), \
     .CHIE_DATACHECK_WIDTH_PARAM         (CHIE_DATACHECK_WIDTH_PARAM        ), \
     .CHIE_POISON_WIDTH_PARAM            (CHIE_POISON_WIDTH_PARAM           ), \
+    .CHIE_REQ_RSVDC_WIDTH_PARAM         (CHIE_REQ_RSVDC_WIDTH_PARAM        ), \
+    .CHIE_DAT_RSVDC_WIDTH_PARAM         (CHIE_DAT_RSVDC_WIDTH_PARAM        ), \
     .HNF_MSHR_RNF_NUM_PARAM             (HNF_MSHR_RNF_NUM_PARAM            ), \
     .RNF_NID_LIST_PARAM                 (RNF_NID_LIST_PARAM                ), \
     .HNF_NID_PARAM                      (HNF_NID_PARAM                     ), \
@@ -70,6 +74,8 @@
     .CHIE_BE_WIDTH_PARAM                (CHIE_BE_WIDTH_PARAM               ), \
     .CHIE_DATACHECK_WIDTH_PARAM         (CHIE_DATACHECK_WIDTH_PARAM        ), \
     .CHIE_POISON_WIDTH_PARAM            (CHIE_POISON_WIDTH_PARAM           ), \
+    .CHIE_REQ_RSVDC_WIDTH_PARAM         (CHIE_REQ_RSVDC_WIDTH_PARAM        ), \
+    .CHIE_DAT_RSVDC_WIDTH_PARAM         (CHIE_DAT_RSVDC_WIDTH_PARAM        ), \
     .HNF_MSHR_RNF_NUM_PARAM             (HNF_MSHR_RNF_NUM_PARAM            ), \
     .RNF_NID_LIST_PARAM                 (RNF_NID_LIST_PARAM                ), \
     .HNF_SF_ENTRIES_NUM_PARAM           (HNF_SF_ENTRIES_NUM_PARAM          ), \

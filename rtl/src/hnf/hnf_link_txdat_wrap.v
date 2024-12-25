@@ -167,6 +167,14 @@ module hnf_link_txdat_wrap `HNF_PARAM
             ;
     end
 
+    generate
+        if(CHIE_DAT_RSVDC_WIDTH_PARAM != 0)begin
+            always @*begin
+                txdatflit_mshr_s0[`CHIE_DAT_FLIT_RSVDC_RANGE] = {`CHIE_DAT_FLIT_RSVDC_WIDTH{1'b0}};
+            end
+        end
+    endgenerate
+
     always @*begin : combinational_logic1
         txdatflit_mshr_s0[`CHIE_DAT_FLIT_QOS_RANGE]       = {`CHIE_DAT_FLIT_QOS_WIDTH{1'b0}};
         txdatflit_mshr_s0[`CHIE_DAT_FLIT_TGTID_RANGE]     = mshr_txdat_tgtid_sx2;

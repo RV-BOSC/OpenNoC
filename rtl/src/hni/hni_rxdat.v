@@ -138,7 +138,7 @@ module hni_rxdat `HNI_PARAM
 
     always @(posedge clk or posedge rst) begin: rxdat_crd_cnt_s1_q_logic_t
         if (rst == 1'b1)
-            rxdat_crd_cnt_s1_q <= DEV_XP_LL_CRD_COUNT_PARAM;
+            rxdat_crd_cnt_s1_q <= XP_LCRD_NUM_PARAM;
         else if (rxdat_crd_cnt_upd_s0 == 1'b1)
             rxdat_crd_cnt_s1_q <= rxdat_crd_cnt_nxt_s0;
     end

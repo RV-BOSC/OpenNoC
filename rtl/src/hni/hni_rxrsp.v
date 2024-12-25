@@ -139,7 +139,7 @@ module hni_rxrsp `HNI_PARAM
 
     always @(posedge clk or posedge rst) begin: rxrsp_crd_cnt_s1_q_logic_t
         if (rst == 1'b1)
-            rxrsp_crd_cnt_s1_q <= DEV_XP_LL_CRD_COUNT_PARAM;
+            rxrsp_crd_cnt_s1_q <= XP_LCRD_NUM_PARAM;
         else if (rxrsp_crd_cnt_upd_s0 == 1'b1)
             rxrsp_crd_cnt_s1_q <= rxrsp_crd_cnt_nxt_s0;
     end

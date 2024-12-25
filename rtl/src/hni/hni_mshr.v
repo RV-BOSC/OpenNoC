@@ -56,7 +56,6 @@ module hni_mshr `HNI_PARAM
         rxreq_dbf_device_s0,
         rxreq_dbf_wr_s0,   //write txn
         rxreq_dbf_size_s0,
-        rxreq_dbf_axsize_s0,
         rxreq_dbf_axlen_s0,
         rxreq_dbf_entry_idx_s0,
 
@@ -100,7 +99,6 @@ module hni_mshr `HNI_PARAM
         arprot_sx,
         arqos_sx,
         arregion_sx,
-        aruser_sx,
         arvalid_sx,
         arready_sx,     
         awid_sx,
@@ -113,12 +111,10 @@ module hni_mshr `HNI_PARAM
         awprot_sx,
         awqos_sx,
         awregion_sx,
-        awuser_sx,
         awvalid_sx,
         awready_sx,     
         bid_sx,
         bresp_sx,
-        buser_sx,
         bvalid_sx,
         bready_sx
     );
@@ -129,7 +125,7 @@ module hni_mshr `HNI_PARAM
     //inputs from hni_qos
     input  wire                                         rxreq_alloc_en_s0;
     input  wire [`CHIE_REQ_FLIT_RANGE]                  rxreq_alloc_flit_s0;
-    input wire [`HNI_MSHR_ENTRIES_WIDTH-1:0]            mshr_entry_idx_alloc_s0;
+    input  wire [`HNI_MSHR_ENTRIES_WIDTH-1:0]           mshr_entry_idx_alloc_s0;
 
     //inouts with hni_global_monitor
     input wire                                          excl_pass_s1;
@@ -156,13 +152,12 @@ module hni_mshr `HNI_PARAM
 
     //inouts with hni_data_buffer
     output wire                                         rxreq_dbf_en_s0;
-    output wire [`AXI_AXID_WIDTH-1:0]                   rxreq_dbf_axid_s0;
+    output wire [`HNI_AXI4_AXID_WIDTH-1:0]              rxreq_dbf_axid_s0;
     output wire [`CHIE_REQ_FLIT_ADDR_WIDTH-1:0]         rxreq_dbf_addr_s0;
     output wire                                         rxreq_dbf_device_s0;
     output wire                                         rxreq_dbf_wr_s0;   //write txn
     output wire [`CHIE_REQ_FLIT_SIZE_WIDTH-1:0]         rxreq_dbf_size_s0; 
-    output wire [`AXI_AXSIZE_WIDTH-1:0]                 rxreq_dbf_axsize_s0;
-    output wire [`AXI_AXLEN_WIDTH-1:0]                  rxreq_dbf_axlen_s0;
+    output wire [`AXI4_AWLEN_WIDTH-1:0]                 rxreq_dbf_axlen_s0;
 
     output wire [`HNI_MSHR_ENTRIES_WIDTH-1:0]           rxreq_dbf_entry_idx_s0;
 
@@ -198,37 +193,34 @@ module hni_mshr `HNI_PARAM
     output wire [`HNI_MSHR_ENTRIES_WIDTH-1:0]           mshr_retired_idx_sx;
 
     //inout with axi slaves
-    output wire [`AXI_AXID_WIDTH-1:0]                   arid_sx;
-    output wire [`AXI_AXADDR_WIDTH-1:0]                 araddr_sx;
-    output wire [`AXI_AXLEN_WIDTH-1:0]                  arlen_sx;
-    output wire [`AXI_AXSIZE_WIDTH-1:0]                 arsize_sx;
-    output wire [`AXI_AXBURST_WIDTH-1:0]                arburst_sx;
-    output wire [`AXI_AXLOCK_WIDTH-1:0]                 arlock_sx;
-    output wire [`AXI_AXCACHE_WIDTH-1:0]                arcache_sx;
-    output wire [`AXI_AXPROT_WIDTH-1:0]                 arprot_sx;
-    output wire [`AXI_AXQOS_WIDTH-1:0]                  arqos_sx;
-    output wire [`AXI_AXREGION_WIDTH-1:0]               arregion_sx;
-    output wire [`AXI_AXUSER_WIDTH-1:0]                 aruser_sx;
+    output wire [`AXI4_ARID_WIDTH-1:0]                  arid_sx;
+    output wire [`AXI4_ARADDR_WIDTH-1:0]                araddr_sx;
+    output wire [`AXI4_ARLEN_WIDTH-1:0]                 arlen_sx;
+    output wire [`AXI4_ARSIZE_WIDTH-1:0]                arsize_sx;
+    output wire [`AXI4_ARBURST_WIDTH-1:0]               arburst_sx;
+    output wire [`AXI4_ARLOCK_WIDTH-1:0]                arlock_sx;
+    output wire [`AXI4_ARCACHE_WIDTH-1:0]               arcache_sx;
+    output wire [`AXI4_ARPROT_WIDTH-1:0]                arprot_sx;
+    output wire [`AXI4_ARQOS_WIDTH-1:0]                 arqos_sx;
+    output wire [`AXI4_ARREGION_WIDTH-1:0]              arregion_sx;
     output reg                                          arvalid_sx;
     input  wire                                         arready_sx;
 
-    output wire [`AXI_AXID_WIDTH-1:0]                   awid_sx;
-    output wire [`AXI_AXADDR_WIDTH-1:0]                 awaddr_sx;
-    output wire [`AXI_AXLEN_WIDTH-1:0]                  awlen_sx;
-    output wire [`AXI_AXSIZE_WIDTH-1:0]                 awsize_sx;
-    output wire [`AXI_AXBURST_WIDTH-1:0]                awburst_sx;
-    output wire [`AXI_AXLOCK_WIDTH-1:0]                 awlock_sx;
-    output wire [`AXI_AXCACHE_WIDTH-1:0]                awcache_sx;
-    output wire [`AXI_AXPROT_WIDTH-1:0]                 awprot_sx;
-    output wire [`AXI_AXQOS_WIDTH-1:0]                  awqos_sx;
-    output wire [`AXI_AXREGION_WIDTH-1:0]               awregion_sx;
-    output wire [`AXI_AXUSER_WIDTH-1:0]                 awuser_sx;
+    output wire [`AXI4_AWID_WIDTH-1:0]                  awid_sx;
+    output wire [`AXI4_AWADDR_WIDTH-1:0]                awaddr_sx;
+    output wire [`AXI4_AWLEN_WIDTH-1:0]                 awlen_sx;
+    output wire [`AXI4_AWSIZE_WIDTH-1:0]                awsize_sx;
+    output wire [`AXI4_AWBURST_WIDTH-1:0]               awburst_sx;
+    output wire [`AXI4_AWLOCK_WIDTH-1:0]                awlock_sx;
+    output wire [`AXI4_AWCACHE_WIDTH-1:0]               awcache_sx;
+    output wire [`AXI4_AWPROT_WIDTH-1:0]                awprot_sx;
+    output wire [`AXI4_AWQOS_WIDTH-1:0]                 awqos_sx;
+    output wire [`AXI4_AWREGION_WIDTH-1:0]              awregion_sx;
     output reg                                          awvalid_sx;
     input  wire                                         awready_sx;
 
-    input  wire [`AXI_BID_WIDTH-1:0]                    bid_sx;
-    input  wire [`AXI_BRESP_WIDTH-1:0]                  bresp_sx;
-    input  wire [`AXI_BUSER_WIDTH-1:0]                  buser_sx;
+    input  wire [`AXI4_BID_WIDTH-1:0]                   bid_sx;
+    input  wire [`AXI4_BRESP_WIDTH-1:0]                 bresp_sx;
     input  wire                                         bvalid_sx;
     output wire                                         bready_sx;
 
@@ -258,11 +250,11 @@ module hni_mshr `HNI_PARAM
     reg [`HNI_MSHR_ENTRIES_NUM-1:0]             rxreq_wrp_s1_q;
     reg [`CHIE_DAT_FLIT_CCID_WIDTH-1:0]         rxreq_ccid_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
     reg [`CHIE_REQ_FLIT_ADDR_WIDTH-1:0]         rxreq_alignaddr_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
-    reg [`AXI_AXID_WIDTH-1:0]                   rxreq_axid_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
-    reg [`AXI_AXLEN_WIDTH-1:0]                  rxreq_axlen_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
-    reg [`AXI_AXSIZE_WIDTH-1:0]                 rxreq_axsize_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
+    reg [`HNI_AXI4_AXID_WIDTH-1:0]              rxreq_axid_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
+    reg [`AXI4_AWLEN_WIDTH-1:0]                 rxreq_axlen_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
+    reg [`AXI4_AWSIZE_WIDTH-1:0]                rxreq_axsize_s1_q[`HNI_MSHR_ENTRIES_NUM-1:0];
 
-    reg [`AXI_AXID_WIDTH-1:0]                   rxreq_axid_s0;    
+    reg [`HNI_AXI4_AXID_WIDTH-1:0]              rxreq_axid_s0;    
     reg [1:0]                                   addr_region_id;
     reg [2:0]                                   addr_range_compare;
     reg [`CHIE_REQ_FLIT_ADDR_WIDTH-1-12:0]      addr_order_region_aligned;
@@ -342,8 +334,8 @@ module hni_mshr `HNI_PARAM
     wire                                        rxreq_rd_s0;
     wire                                        rxreq_wrf_s0;
     wire                                        rxreq_wrp_s0;
-    wire [`AXI_AXSIZE_WIDTH-1:0]                rxreq_axsize_s0;
-    wire [`AXI_AXLEN_WIDTH-1:0]                 rxreq_axlen_s0;
+    wire [`AXI4_AWSIZE_WIDTH-1:0]               rxreq_axsize_s0;
+    wire [`AXI4_AWLEN_WIDTH-1:0]                rxreq_axlen_s0;
     wire [`HNI_MSHR_ENTRIES_NUM-1:0]            mshr_entry_alloc_sx;
     wire [`CHIE_REQ_FLIT_ADDR_WIDTH-1-12:0]     sam_addrregion_idx[2:0];
     wire [5:0]                                  sam_addrregion_size[2:0];
@@ -367,6 +359,7 @@ module hni_mshr `HNI_PARAM
     wire [`HNI_MSHR_ENTRIES_NUM-1:0]            txdat1_en_sx;
     wire [`HNI_MSHR_ENTRIES_NUM-1:0]            txdat2_en_sx;
     wire                                        arvalid_en_s1;
+    wire                                        arvalid_en2_s1;
     wire                                        awvalid_en_s1;
     wire [`HNI_MSHR_ENTRIES_NUM-1:0]            need_to_sleep_s0;
     wire                                        wakeup_valid;
@@ -421,7 +414,6 @@ module hni_mshr `HNI_PARAM
     assign rxreq_dbf_device_s0    = rxreq_device_s0;
     assign rxreq_dbf_wr_s0        = rxreq_wrf_s0 | rxreq_wrp_s0;
     assign rxreq_dbf_size_s0      = rxreq_size_s0;
-    assign rxreq_dbf_axsize_s0    = rxreq_axsize_s0;
     assign rxreq_dbf_axlen_s0     = rxreq_axlen_s0;
     assign rxreq_dbf_entry_idx_s0 = mshr_entry_idx_alloc_s0;
 
@@ -593,18 +585,18 @@ module hni_mshr `HNI_PARAM
             //ADDR[5:4]:identifies the critical chunk
             always @(posedge clk or posedge rst)begin : axlen_logic
                 if(rst == 1'b1)
-                    rxreq_axlen_s1_q[entry] <= {`AXI_AXLEN_WIDTH{1'b0}};
+                    rxreq_axlen_s1_q[entry] <= {`AXI4_AWLEN_WIDTH{1'b0}};
                 else if(retired_entry_sx[entry] == 1'b1)
-                    rxreq_axlen_s1_q[entry] <= {`AXI_AXLEN_WIDTH{1'b0}};
+                    rxreq_axlen_s1_q[entry] <= {`AXI4_AWLEN_WIDTH{1'b0}};
                 else if(mshr_entry_alloc_sx[entry] == 1'b1)
                     rxreq_axlen_s1_q[entry] <= rxreq_axlen_s0;
             end
 
             always @(posedge clk or posedge rst)begin : axsize_logic
                 if(rst == 1'b1)
-                    rxreq_axsize_s1_q[entry] <= {`AXI_AXSIZE_WIDTH{1'b0}};
+                    rxreq_axsize_s1_q[entry] <= {`AXI4_AWSIZE_WIDTH{1'b0}};
                 else if(retired_entry_sx[entry] == 1'b1)
-                    rxreq_axsize_s1_q[entry] <= {`AXI_AXSIZE_WIDTH{1'b0}};
+                    rxreq_axsize_s1_q[entry] <= {`AXI4_AWSIZE_WIDTH{1'b0}};
                 else if(mshr_entry_alloc_sx[entry] == 1'b1)begin
                     rxreq_axsize_s1_q[entry] <= rxreq_axsize_s0;
                 end
@@ -655,14 +647,14 @@ module hni_mshr `HNI_PARAM
 
     //************************************************************************//
 
-    wire [`AXI_AXADDR_WIDTH-1:0] rxreq_addralign_s0[HNI_ADDR_REGION_NUM-1:0];
+    wire [`HNI_AXI4_AXADDR_WIDTH-1:0] rxreq_addralign_s0[HNI_ADDR_REGION_NUM-1:0];
     generate
         for(i=0;i< HNI_ADDR_REGION_NUM;i=i+1) begin:rxreq_addralign_s0_val
             assign rxreq_addralign_s0[i] = (rxreq_addr_s0 >> HNI_ADDR_REGION_SIZE[i]);
         end
     endgenerate
     always @* begin: rxreq_axid_s0_val
-        rxreq_axid_s0 = {`AXI_AXID_WIDTH{1'b0}};
+        rxreq_axid_s0 = {`HNI_AXI4_AXID_WIDTH{1'b0}};
         for(k=0;k< HNI_ADDR_REGION_NUM;k=k+1) begin
             if (rxreq_addralign_s0[k] == (HNI_ADDR_REGION_LSB[k] >> HNI_ADDR_REGION_SIZE[k])) begin
                 rxreq_axid_s0 = k+1;
@@ -674,9 +666,9 @@ module hni_mshr `HNI_PARAM
         for(entry=0;entry<`HNI_MSHR_ENTRIES_NUM;entry=entry+1) begin
             always @(posedge clk or posedge rst)begin : sam_axid_logic
                 if (rst ==1'b1)
-                    rxreq_axid_s1_q[entry] <= {`AXI_AXID_WIDTH{1'b0}};
+                    rxreq_axid_s1_q[entry] <= {`HNI_AXI4_AXID_WIDTH{1'b0}};
                 else if (retired_entry_sx[entry] == 1'b1)
-                    rxreq_axid_s1_q[entry] <= {`AXI_AXID_WIDTH{1'b0}};
+                    rxreq_axid_s1_q[entry] <= {`HNI_AXI4_AXID_WIDTH{1'b0}};
                 else if (mshr_entry_alloc_sx[entry] == 1'b1)
                     rxreq_axid_s1_q[entry] <= rxreq_axid_s0;
             end
@@ -1058,7 +1050,7 @@ module hni_mshr `HNI_PARAM
     end
 
     assign arid_sx          = rxreq_axid_s1_q[arvalid_entry_idx_s1_q];
-    assign araddr_sx        = rxreq_device_s1_q[arvalid_entry_idx_s1_q] ? rxreq_addr_s1_q[arvalid_entry_idx_s1_q][`AXI_AXADDR_WIDTH-1:0] : rxreq_alignaddr_s1_q[arvalid_entry_idx_s1_q][`AXI_AXADDR_WIDTH-1:0];
+    assign araddr_sx        = rxreq_device_s1_q[arvalid_entry_idx_s1_q] ? rxreq_addr_s1_q[arvalid_entry_idx_s1_q][`AXI4_ARADDR_WIDTH-1:0] : rxreq_alignaddr_s1_q[arvalid_entry_idx_s1_q][`AXI4_ARADDR_WIDTH-1:0];
     assign arcache_sx[0]    = rxreq_memattr_s1_q[arvalid_entry_idx_s1_q][0];
     assign arcache_sx[1]    = ~rxreq_memattr_s1_q[arvalid_entry_idx_s1_q][1];
     assign arcache_sx[2]    = rxreq_memattr_s1_q[arvalid_entry_idx_s1_q][2];
@@ -1067,8 +1059,7 @@ module hni_mshr `HNI_PARAM
     assign arlock_sx        = 1'b0;
     assign arprot_sx        = {1'b0,rxreq_ns_s1_q[arvalid_entry_idx_s1_q],1'b0};
     assign arqos_sx         = rxreq_qos_s1_q[arvalid_entry_idx_s1_q];
-    assign arregion_sx      = {`AXI_AXREGION_WIDTH{1'b0}};
-    assign aruser_sx        = 1'b0;
+    assign arregion_sx      = {`AXI4_ARREGION_WIDTH{1'b0}};
     assign arlen_sx         = rxreq_axlen_s1_q[arvalid_entry_idx_s1_q];
     assign arsize_sx        = rxreq_axsize_s1_q[arvalid_entry_idx_s1_q];
 
@@ -1176,19 +1167,18 @@ module hni_mshr `HNI_PARAM
     // AWCACHE[3] (Allocate) => MemAttr[3] (Allocate)
     //--------------------------------------------
     assign awid_sx          = rxreq_axid_s1_q[awvalid_entry_idx_s2_q];
-    assign awaddr_sx        = rxreq_device_s1_q[awvalid_entry_idx_s2_q] ? rxreq_addr_s1_q[awvalid_entry_idx_s2_q][`AXI_AXADDR_WIDTH-1:0] : rxreq_alignaddr_s1_q[awvalid_entry_idx_s2_q][`AXI_AXADDR_WIDTH-1:0] ;
+    assign awaddr_sx        = rxreq_device_s1_q[awvalid_entry_idx_s2_q] ? rxreq_addr_s1_q[awvalid_entry_idx_s2_q][`AXI4_AWADDR_WIDTH-1:0] : rxreq_alignaddr_s1_q[awvalid_entry_idx_s2_q][`AXI4_AWADDR_WIDTH-1:0] ;
     assign awcache_sx[0]    = rxreq_memattr_s1_q[awvalid_entry_idx_s2_q][0];
     assign awcache_sx[1]    = ~rxreq_memattr_s1_q[awvalid_entry_idx_s2_q][1];
     assign awcache_sx[2]    = rxreq_memattr_s1_q[awvalid_entry_idx_s2_q][2];
     assign awcache_sx[3]    = rxreq_memattr_s1_q[awvalid_entry_idx_s2_q][3];
     assign awqos_sx         = rxreq_qos_s1_q[awvalid_entry_idx_s2_q];
     assign awprot_sx        = {1'b0,rxreq_ns_s1_q[awvalid_entry_idx_s2_q],1'b0};       
-    assign awuser_sx        = 1'b0;
     assign awlen_sx         = rxreq_axlen_s1_q[awvalid_entry_idx_s2_q];
     assign awsize_sx        = rxreq_axsize_s1_q[awvalid_entry_idx_s2_q];
     assign awburst_sx       = 2'b01;
     assign awlock_sx        = 1'b0;        
-    assign awregion_sx      = {`AXI_AXREGION_WIDTH{1'b0}};
+    assign awregion_sx      = {`AXI4_AWREGION_WIDTH{1'b0}};
 
     //************************************************************************//
 
@@ -1286,8 +1276,8 @@ module hni_mshr `HNI_PARAM
     generate
         for(entry=0;entry<`HNI_MSHR_ENTRIES_NUM;entry=entry+1) begin
             assign compack_ok_sx[entry]     = rxrsp_compack_s1_q[entry]|rxdat_compack_s1_q[entry];
-            assign retired_entry_sx[entry]  = (mshr_entry_valid_sx_q[entry] & (~sleep_sx_q[entry]) & txrsp_sent_q[entry] & ~(rxreq_expcompack_s1_q[entry] & ~compack_ok_sx[entry])) ?
-                                            ((rxreq_wrf_s1_q[entry] | rxreq_wrp_s1_q[entry]) ? (bresp_ok_q[entry] | (dbf_rxdat_ok_s2_q[entry] & rxreq_excl_fail_s2_q[entry])) :
+            assign retired_entry_sx[entry]  = (mshr_entry_valid_sx_q[entry] & (~sleep_sx_q[entry]) & txrsp_sent_q[entry] & ~(rxreq_expcompack_s1_q[entry] & ~compack_ok_sx[entry])) ? 
+                                            ((rxreq_wrf_s1_q[entry] | rxreq_wrp_s1_q[entry]) ? (bresp_ok_q[entry] | (dbf_rxdat_ok_s2_q[entry] & rxreq_excl_fail_s2_q[entry])) : 
                                             (rxreq_rd_s1_q[entry] & ((txdat_sent_sx_q[entry] == 2'b11) | ((rxreq_size_s1_q[entry] <= 3'b101) & (|txdat_sent_sx_q[entry]))))) : 1'b0;
         end
     endgenerate

@@ -24,8 +24,10 @@
 //global define
 `define HNI0_ID                            HNI_NODEID_PARAM
 
-`define HNI_MSHR_ENTRIES_NUM                   HNI_MSHR_ENTRIES_NUM_PARAM
-`define HNI_MSHR_ENTRIES_WIDTH                 HNI_MSHR_ENTRIES_WIDTH_PARAM
+`define HNI_MSHR_ENTRIES_NUM               HNI_MSHR_ENTRIES_NUM_PARAM
+`define HNI_MSHR_ENTRIES_WIDTH             HNI_MSHR_ENTRIES_WIDTH_PARAM
+`define HNI_AXI4_AXID_WIDTH                11
+`define HNI_AXI4_AXADDR_WIDTH              AXI4_PA_WIDTH_PARAM
 
 //hni_dbf
 `define HNI_MASK_CD_WIDTH 4 
@@ -50,7 +52,7 @@
 `define HNI_LL_REQ_CRD_CNT_RANGE           3:0
 `define HNI_LL_REQ_CRD_CNT_MSB             3
 `define HNI_LL_REQ_CRD_CNT_LSB             0
-`define HNI_LL_REQ_MAX_CRD_VALUE           DEV_XP_LL_CRD_COUNT_PARAM
+`define HNI_LL_REQ_MAX_CRD_VALUE           XP_LCRD_NUM_PARAM
 `define HNI_LL_CRD_INCDEC_ONE              1
 `define HNI_LL_CRD_INCDEC_TWO              2
 `define HNI_LL_CRD_INCDEC_THREE            3
@@ -60,14 +62,14 @@
 `define HNI_LL_RSP_CRD_CNT_RANGE           3:0
 `define HNI_LL_RSP_CRD_CNT_MSB             3
 `define HNI_LL_RSP_CRD_CNT_LSB             0
-`define HNI_LL_RSP_MAX_CRD_VALUE           DEV_XP_LL_CRD_COUNT_PARAM
+`define HNI_LL_RSP_MAX_CRD_VALUE           XP_LCRD_NUM_PARAM
 
 //hni_link_dat_channel_lcredit
 `define HNI_LL_DAT_CRD_CNT_WIDTH           4
 `define HNI_LL_DAT_CRD_CNT_RANGE           3:0
 `define HNI_LL_DAT_CRD_CNT_MSB             3
 `define HNI_LL_DAT_CRD_CNT_LSB             0
-`define HNI_LL_DAT_MAX_CRD_VALUE           DEV_XP_LL_CRD_COUNT_PARAM
+`define HNI_LL_DAT_MAX_CRD_VALUE           XP_LCRD_NUM_PARAM
 
 //hni_mshr_qos
 `define HNI_QOS_CNT_WIDTH                      HNI_MSHR_ENTRIES_WIDTH_PARAM

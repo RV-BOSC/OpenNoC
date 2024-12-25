@@ -70,13 +70,11 @@ module hni `HNI_PARAM
         ARPROT,
         ARQOS,
         ARREGION,
-        ARUSER,
         ARVALID,
         ARREADY,
 
         RID,
         RDATA,
-        RUSER,
         RRESP,
         RLAST,
         RVALID,
@@ -92,20 +90,17 @@ module hni `HNI_PARAM
         AWPROT,
         AWQOS,
         AWREGION,
-        AWUSER,
         AWVALID,
         AWREADY,
 
         WDATA,
         WSTRB,
         WLAST,
-        WUSER,
         WVALID,
         WREADY,
 
         BID,
         BRESP,
-        BUSER,
         BVALID,
         BREADY
     );
@@ -147,7 +142,7 @@ module hni `HNI_PARAM
 
     //AXI interface
     output wire [10:0]                          ARID;
-    output wire [`AXI_AXADDR_WIDTH-1:0]         ARADDR;
+    output wire [`AXI4_ARADDR_WIDTH-1:0]        ARADDR;
     output wire [7:0]                           ARLEN;
     output wire [2:0]                           ARSIZE;
     output wire [1:0]                           ARBURST;
@@ -156,20 +151,18 @@ module hni `HNI_PARAM
     output wire [2:0]                           ARPROT;
     output wire [3:0]                           ARQOS;
     output wire [3:0]                           ARREGION;
-    output wire [7:0]                           ARUSER;
     output wire                                 ARVALID;
     input  wire                                 ARREADY;
 
     input  wire [10:0]                          RID;
-    input  wire [`AXI_AXDATA_WIDTH-1:0]         RDATA;
-    input  wire [0:0]                           RUSER;
+    input  wire [`AXI4_RDATA_WIDTH-1:0]         RDATA;
     input  wire [1:0]                           RRESP;
     input  wire                                 RLAST;
     input  wire                                 RVALID;
     output wire                                 RREADY;
 
     output wire [10:0]                          AWID;
-    output wire [`AXI_AXADDR_WIDTH-1:0]         AWADDR;
+    output wire [`AXI4_AWADDR_WIDTH-1:0]        AWADDR;
     output wire [7:0]                           AWLEN;
     output wire [2:0]                           AWSIZE;
     output wire [1:0]                           AWBURST;
@@ -178,20 +171,17 @@ module hni `HNI_PARAM
     output wire [2:0]                           AWPROT;
     output wire [3:0]                           AWQOS;
     output wire [3:0]                           AWREGION;
-    output wire [7:0]                           AWUSER;
     output wire                                 AWVALID;
     input  wire                                 AWREADY;
 
-    output wire [`AXI_AXDATA_WIDTH-1:0]         WDATA;
-    output wire [((`AXI_AXDATA_WIDTH/8))-1:0]   WSTRB;
+    output wire [`AXI4_WDATA_WIDTH-1:0]         WDATA;
+    output wire [`AXI4_WSTRB_WIDTH-1:0]         WSTRB;
     output wire                                 WLAST;
-    output wire [0:0]                           WUSER;
     output wire                                 WVALID;
     input  wire                                 WREADY;
 
     input  wire [10:0]                          BID;
     input  wire [1:0]                           BRESP;
-    input  wire [3:0]                           BUSER;
     input  wire                                 BVALID;
     output wire                                 BREADY;
 
@@ -238,8 +228,7 @@ module hni `HNI_PARAM
     wire [`CHIE_REQ_FLIT_ADDR_WIDTH-1:0]        rxreq_dbf_addr_s0;
     wire                                        rxreq_dbf_device_s0;
     wire [`CHIE_REQ_FLIT_SIZE_WIDTH-1:0]        rxreq_dbf_size_s0; 
-    wire [`AXI_AXSIZE_WIDTH-1:0]                rxreq_dbf_axsize_s0;
-    wire [`AXI_AXLEN_WIDTH-1:0]                 rxreq_dbf_axlen_s0;
+    wire [`AXI4_AWLEN_WIDTH-1:0]                rxreq_dbf_axlen_s0;
     wire                                        mshr_rdat_en_sx;
     wire [`HNI_MSHR_ENTRIES_WIDTH-1:0]          mshr_rdat_entry_idx_sx;
     wire                                        mshr_txdat_en_sx;
@@ -441,13 +430,11 @@ module hni `HNI_PARAM
             .rresp(RRESP),
             .rlast(RLAST),
             .rvalid(RVALID),
-            .ruser(RUSER),
             .rready(RREADY),
             .wdata(WDATA),
             .wstrb(WSTRB),
             .wlast(WLAST),
             .wvalid(WVALID),
-            .wuser(WUSER),
             .wready(WREADY)
         );
 
@@ -485,7 +472,6 @@ module hni `HNI_PARAM
             .rxreq_dbf_addr_s0(rxreq_dbf_addr_s0),
             .rxreq_dbf_device_s0(rxreq_dbf_device_s0),
             .rxreq_dbf_size_s0(rxreq_dbf_size_s0), 
-            .rxreq_dbf_axsize_s0(rxreq_dbf_axsize_s0),
             .rxreq_dbf_axlen_s0(rxreq_dbf_axlen_s0),
             .mshr_rdat_en_sx(mshr_rdat_en_sx),
             .mshr_rdat_entry_idx_sx(mshr_rdat_entry_idx_sx), 
@@ -517,7 +503,6 @@ module hni `HNI_PARAM
             .arprot_sx(ARPROT),
             .arqos_sx(ARQOS),
             .arregion_sx(ARREGION),
-            .aruser_sx(ARUSER),
             .arvalid_sx(ARVALID),
             .arready_sx(ARREADY),     
             .awid_sx(AWID),
@@ -530,12 +515,10 @@ module hni `HNI_PARAM
             .awprot_sx(AWPROT),
             .awqos_sx(AWQOS),
             .awregion_sx(AWREGION),
-            .awuser_sx(AWUSER),
             .awvalid_sx(AWVALID),
             .awready_sx(AWREADY),     
             .bid_sx(BID),
             .bresp_sx(BRESP),
-            .buser_sx(BUSER),
             .bvalid_sx(BVALID),
             .bready_sx(BREADY)
         );
