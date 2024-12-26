@@ -17,6 +17,8 @@
 ./misc/poll_function.v
 ./misc/sync_fifo.v
 ./misc/rni_sel_bit_from_vec.v
+./misc/snf_find_entry.v
+./misc/snf_fifo.v
 ./src/hnf/hnf_link_txdat_wrap.v
 ./src/hnf/hnf_cache_pipeline.v
 ./src/hnf/hnf_tag_sram.v
@@ -66,7 +68,14 @@
 ./src/rni/rni_rd_buffer.v
 ./src/rni/rni_lcrd_hdlr.v
 ./src/rni/rni_link_handshake.v
+./src/snf/snf_rxdat.v
+./src/snf/snf_txrsp.v
+./src/snf/snf_data_buffer.v
+./src/snf/snf_mshr.v
+./src/snf/snf_txdat.v
+./src/snf/snf_rxreq.v
+./src/snf/snf_qos.v
+./src/snf/snf.v
 ./tb/tb_snf.v
 ./tb/tb_snf_sram.v
 ./tb/tb_rni.sv
-
