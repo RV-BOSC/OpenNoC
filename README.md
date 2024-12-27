@@ -8,18 +8,21 @@ OpenNoC 是基于 AMBA CHI 协议实现的，协议版本为 0050E.b，用来进
 ├── doc                       // design documents
 │   ├── hnf                   // hnf design overview
 ├── README.md                 // README
-└── rtl                       // verilog code
-    ├── include               // header files, including macro definitions.
-    ├── misc                  // SXP and miscellaneous files
-    ├── src                   
-    │   ├── hnf               // HN-F Component code
-    │   ├── hni               // HN-I Component code
-    │   └── rni               // RN-I Component code
-    │   └── snf               // SN-F Component code
-    └── tb                    // test top
-    └── case                  // test case
-    └── Makefile              // compile script
-    └── file_list_tb.f        // list of all src and header files
+├── rtl
+│   ├── include               // verilog code
+│   ├── misc                  // header files, including macro definitions.
+│   ├── src                   // SXP and miscellaneous files
+│   │   ├── hnf               // HN-F Component code
+│   │   ├── hni               // HN-I Component code
+│   │   ├── rni               // RN-I Component code
+│   │   └── snf               // SN-F Component code
+│   │── tb                    // test top
+│   │── case                  // test case
+│   │── Makefile              // compile script
+│   └── file_list_tb.f        // list of all src and header files
+└── tools
+    ├── mesh_generator        //Mesh topology router configure tool
+    └── ring_generator        //Ring topology router configure tool
 
 ```
 # 3 使用说明

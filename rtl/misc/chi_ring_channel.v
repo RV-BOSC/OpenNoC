@@ -11,20 +11,19 @@
 *
 * Author:
 *    Jianxing Wang <wangjianxing@bosc.ac.cn>
-*    Guo Bing <guobing@bosc.ac.cn>
-*    Xiaotian Cao <caoxiaotian@bosc.ac.cn>
+*    Zhao Li       <lizhao@bosc.ac.cn>
 */
 
-module chi_xp_channel #(
+module chi_ring_channel #(
         parameter FLIT_WIDTH = 131,
         parameter FLIT_TGT_OFFSET = 4,
         parameter LCRD_NUM_WIDTH = 4,
-        parameter XP_PORT_EN    = {6{1'b1}}
+        parameter XP_PORT_EN = {4{1'b1}},
+        parameter ROUTER_NODE_NUM
     ) (
         clk,
         rst,
         my_xid,
-        my_yid,
         TXLINKACTIVEREQ_P0,
         TXLINKACTIVEACK_P0,
 
@@ -33,43 +32,31 @@ module chi_xp_channel #(
 
         RXFLITV_E,
         RXFLITV_W,
-        RXFLITV_N,
-        RXFLITV_S,
         RXFLITV_P0,
         RXFLITV_P1,
 
         RXFLIT_E,
         RXFLIT_W,
-        RXFLIT_N,
-        RXFLIT_S,
         RXFLIT_P0,
         RXFLIT_P1,
 
         RXLCRDV_E,
         RXLCRDV_W,
-        RXLCRDV_N,
-        RXLCRDV_S,
         RXLCRDV_P0,
         RXLCRDV_P1,
 
         TXFLITV_E,
         TXFLITV_W,
-        TXFLITV_N,
-        TXFLITV_S,
         TXFLITV_P0,
         TXFLITV_P1,
 
         TXFLIT_E,
         TXFLIT_W,
-        TXFLIT_N,
-        TXFLIT_S,
         TXFLIT_P0,
         TXFLIT_P1,
 
         TXLCRDV_E,
         TXLCRDV_W,
-        TXLCRDV_N,
-        TXLCRDV_S,
         TXLCRDV_P0,
         TXLCRDV_P1
     );
@@ -79,16 +66,14 @@ module chi_xp_channel #(
     localparam RX_MAX_ENTRY = 2'h2;
     localparam XP_INTF_E = 0;
     localparam XP_INTF_W = 1;
-    localparam XP_INTF_N = 2;
-    localparam XP_INTF_S = 3;
-    localparam XP_INTF_P0 = 4;
-    localparam XP_INTF_P1 = 5;
-    localparam XP_INTF_MAX = 6;
+    localparam XP_INTF_P0 = 2;
+    localparam XP_INTF_P1 = 3;
+    localparam XP_INTF_MAX = 4;
+	localparam XP_VALID_NID_WIDTH = $clog2(ROUTER_NODE_NUM);
 
     input wire clk;
     input wire rst;
-    input wire [2:0] my_xid;
-    input wire [2:0] my_yid;
+    input wire [6:1] my_xid;
 
     input wire TXLINKACTIVEREQ_P0;
     input wire TXLINKACTIVEACK_P0;
@@ -97,43 +82,31 @@ module chi_xp_channel #(
 
     input wire RXFLITV_E;
     input wire RXFLITV_W;
-    input wire RXFLITV_N;
-    input wire RXFLITV_S;
     input wire RXFLITV_P0;
     input wire RXFLITV_P1;
 
     input wire [FLIT_WIDTH-1:0] RXFLIT_E;
     input wire [FLIT_WIDTH-1:0] RXFLIT_W;
-    input wire [FLIT_WIDTH-1:0] RXFLIT_N;
-    input wire [FLIT_WIDTH-1:0] RXFLIT_S;
     input wire [FLIT_WIDTH-1:0] RXFLIT_P0;
     input wire [FLIT_WIDTH-1:0] RXFLIT_P1;
 
     output wire RXLCRDV_E;
     output wire RXLCRDV_W;
-    output wire RXLCRDV_N;
-    output wire RXLCRDV_S;
     output wire RXLCRDV_P0;
     output wire RXLCRDV_P1;
 
     output wire TXFLITV_E;
     output wire TXFLITV_W;
-    output wire TXFLITV_N;
-    output wire TXFLITV_S;
     output wire TXFLITV_P0;
     output wire TXFLITV_P1;
 
     output wire [FLIT_WIDTH-1:0] TXFLIT_E;
     output wire [FLIT_WIDTH-1:0] TXFLIT_W;
-    output wire [FLIT_WIDTH-1:0] TXFLIT_N;
-    output wire [FLIT_WIDTH-1:0] TXFLIT_S;
     output wire [FLIT_WIDTH-1:0] TXFLIT_P0;
     output wire [FLIT_WIDTH-1:0] TXFLIT_P1;
 
     input wire TXLCRDV_E;
     input wire TXLCRDV_W;
-    input wire TXLCRDV_N;
-    input wire TXLCRDV_S;
     input wire TXLCRDV_P0;
     input wire TXLCRDV_P1;
 
@@ -248,8 +221,6 @@ module chi_xp_channel #(
 
     assign rxactive_run[XP_INTF_E]  = XP_PORT_EN[XP_INTF_E];
     assign rxactive_run[XP_INTF_W]  = XP_PORT_EN[XP_INTF_W];
-    assign rxactive_run[XP_INTF_N]  = XP_PORT_EN[XP_INTF_N];
-    assign rxactive_run[XP_INTF_S]  = XP_PORT_EN[XP_INTF_S];
     assign rxactive_run[XP_INTF_P0] = XP_PORT_EN[XP_INTF_P0] & linkactive_p0;
     assign rxactive_run[XP_INTF_P1] = XP_PORT_EN[XP_INTF_P1] & linkactive_p1;
     always @(posedge clk or posedge rst) begin
@@ -275,7 +246,7 @@ module chi_xp_channel #(
             assign rxlcrd_inc[g_src] = &rxflit_buffer_entry_deq_d1[g_src][RX_MAX_ENTRY-1:0];
             assign rxlcrd_dec[g_src] = !((|rxflit_buffer_entry_deq_d1[g_src][RX_MAX_ENTRY-1:0]) | rxlcrd_empty[g_src]) & rxactive_run_q[g_src];
             assign rxlcrd_cnt_ns[g_src][LCRD_NUM_WIDTH-1:0] = rxlcrd_inc[g_src] ? (rxlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0] + 1'b1):
-                   (rxlcrd_dec[g_src] ? (rxlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0] - 1'b1): rxlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0]);
+                    (rxlcrd_dec[g_src] ? (rxlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0] - 1'b1): rxlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0]);
 
             always @(posedge clk) begin
                 if (rst) begin
@@ -304,7 +275,7 @@ module chi_xp_channel #(
             assign txlcrd_inc[g_src] = txlcrdv[g_src] & (!txflitv_d1[g_src]) & XP_PORT_EN[g_src];
             assign txlcrd_dec[g_src] = txflitv_d1[g_src] & (!txlcrdv[g_src]) & XP_PORT_EN[g_src];
             assign txlcrd_cnt_ns[g_src][LCRD_NUM_WIDTH-1:0] = txlcrd_inc[g_src] ? (txlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0] + 1'b1):
-                   (txlcrd_dec[g_src] ? (txlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0] - 1'b1): txlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0]);
+                    (txlcrd_dec[g_src] ? (txlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0] - 1'b1): txlcrd_cnt_q[g_src][LCRD_NUM_WIDTH-1:0]);
 
             assign txflit_next_avail[g_src] = ~txlcrd_empty[g_src] | txlcrdv[g_src];
 
@@ -357,8 +328,8 @@ module chi_xp_channel #(
                     end
 
                     assign rxflit_buffer_entry_rdy_clr_r1[g_src][g_entry] = rxflitv_r1[g_src] & rxflit_buffer_entry_enq_r1[g_src][g_entry] &
-                           (rxflit_buffer_entry_tgt_r1[g_src][XP_INTF_MAX-1:0] == rxflit_buffer_entry_tgt_q[g_src][RX_MAX_ENTRY-1-g_entry][XP_INTF_MAX-1:0])
-                           & rxflit_buffer_valid_q[g_src][RX_MAX_ENTRY-1-g_entry] & ~rxflit_buffer_entry_deq_d1[g_src][RX_MAX_ENTRY-1-g_entry];
+                            (rxflit_buffer_entry_tgt_r1[g_src][XP_INTF_MAX-1:0] == rxflit_buffer_entry_tgt_q[g_src][RX_MAX_ENTRY-1-g_entry][XP_INTF_MAX-1:0])
+                            & rxflit_buffer_valid_q[g_src][RX_MAX_ENTRY-1-g_entry] & ~rxflit_buffer_entry_deq_d1[g_src][RX_MAX_ENTRY-1-g_entry];
                     assign rxflit_buffer_entry_rdy_set_d1[g_src][g_entry] = rxflit_buffer_entry_deq_d1[g_src][RX_MAX_ENTRY-1-g_entry] & ~rxflit_buffer_entry_rdy_q[g_src][g_entry];
                     always @(posedge clk) begin
                         if (rxflit_buffer_entry_enq_r1[g_src][g_entry]) begin
@@ -396,9 +367,7 @@ module chi_xp_channel #(
                 assign rxflit_qos_l_r1[g_src] = !rxflit_r1[g_src][3] & !rxflit_r1[g_src][2] & !rxflit_r1[g_src][1];
 
                 assign rxflit_tgtid_r1[g_src][CHIE_NID_WIDTH-1:0] = rxflit_r1[g_src][FLIT_TGT_OFFSET+CHIE_NID_WIDTH-1:FLIT_TGT_OFFSET];
-                assign rxflit_buffer_entry_tgt_r1[g_src][XP_INTF_MAX-1:0] = route_xy(
-                           rxflit_tgtid_r1[g_src][6:4], rxflit_tgtid_r1[g_src][3:1], rxflit_tgtid_r1[g_src][0]
-                       );
+                assign rxflit_buffer_entry_tgt_r1[g_src][XP_INTF_MAX-1:0] = route_x(rxflit_tgtid_r1[g_src]);
             end
         end
     endgenerate
@@ -520,9 +489,7 @@ module chi_xp_channel #(
 
                 always @(posedge clk) begin
                     if (rst) begin
-                        txflit_arb_h_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= {{
-                                              XP_INTF_MAX * RX_MAX_ENTRY
-                                          } {1'b0}};
+                        txflit_arb_h_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= {{XP_INTF_MAX * RX_MAX_ENTRY} {1'b0}};
                     end
                     else if (txflit_arb_h_nxt_upd_d1[g_dst]) begin
                         txflit_arb_h_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= txflit_qos_h_outvec_d1[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0];
@@ -534,9 +501,7 @@ module chi_xp_channel #(
 
                 always @(posedge clk) begin
                     if (rst) begin
-                        txflit_arb_m_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= {{
-                                              XP_INTF_MAX * RX_MAX_ENTRY
-                                          } {1'b0}};
+                        txflit_arb_m_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= {{XP_INTF_MAX * RX_MAX_ENTRY} {1'b0}};
                     end
                     else if (txflit_arb_m_nxt_upd_d1[g_dst]) begin
                         txflit_arb_m_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= txflit_qos_m_outvec_d1[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0];
@@ -548,9 +513,7 @@ module chi_xp_channel #(
 
                 always @(posedge clk) begin
                     if (rst) begin
-                        txflit_arb_l_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= {{
-                                              XP_INTF_MAX * RX_MAX_ENTRY
-                                          } {1'b0}};
+                        txflit_arb_l_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= {{XP_INTF_MAX * RX_MAX_ENTRY} {1'b0}};
                     end
                     else if (txflit_arb_l_nxt_upd_d1[g_dst]) begin
                         txflit_arb_l_nxt_q[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0] <= txflit_qos_l_outvec_d1[g_dst][(XP_INTF_MAX*RX_MAX_ENTRY)-1:0];
@@ -575,10 +538,11 @@ module chi_xp_channel #(
                 rxflit_buffer_entry_deq_d1[i_src][i_entry] = 1'b0;
                 if (XP_PORT_EN[i_src]) begin
                     for (i_dst = 0; i_dst < XP_INTF_MAX; i_dst = i_dst + 1) begin
-                        rxflit_buffer_entry_deq_d1[i_src][i_entry] = rxflit_buffer_entry_deq_d1[i_src][i_entry] | (txflit_arb_hh_nxt_upd_d1[i_dst] ? txflit_qos_hh_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]:
-                                                  (txflit_arb_h_nxt_upd_d1[i_dst] ? txflit_qos_h_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]:
-                                                   (txflit_arb_m_nxt_upd_d1[i_dst] ? txflit_qos_m_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]:
-                                                    (txflit_arb_l_nxt_upd_d1[i_dst] ? txflit_qos_l_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]: 1'b0))));
+                        rxflit_buffer_entry_deq_d1[i_src][i_entry] = rxflit_buffer_entry_deq_d1[i_src][i_entry] | (txflit_arb_hh_nxt_upd_d1[i_dst] ? 
+                                                                        txflit_qos_hh_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]:
+                                                                        (txflit_arb_h_nxt_upd_d1[i_dst] ? txflit_qos_h_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]:
+                                                                        (txflit_arb_m_nxt_upd_d1[i_dst] ? txflit_qos_m_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]:
+                                                                        (txflit_arb_l_nxt_upd_d1[i_dst] ? txflit_qos_l_outvec_d1[i_dst][i_src * RX_MAX_ENTRY + i_entry]: 1'b0))));
                     end
                 end
             end
@@ -614,12 +578,12 @@ module chi_xp_channel #(
                 g_dst = g_dst + 1) begin
             if (XP_PORT_EN[g_dst]) begin
                 assign txflitv_d1[g_dst]
-                       = txflit_arb_hh_nxt_upd_d1[g_dst]|txflit_arb_h_nxt_upd_d1[g_dst]|txflit_arb_m_nxt_upd_d1[g_dst]|txflit_arb_l_nxt_upd_d1[g_dst];
+                    = txflit_arb_hh_nxt_upd_d1[g_dst]|txflit_arb_h_nxt_upd_d1[g_dst]|txflit_arb_m_nxt_upd_d1[g_dst]|txflit_arb_l_nxt_upd_d1[g_dst];
                 assign txflit_d1[g_dst][FLIT_WIDTH-1:0] = txflit_arb_hh_nxt_upd_d1[g_dst] ? txflit_hh_d1[g_dst][FLIT_WIDTH-1:0]:
-                       (txflit_arb_h_nxt_upd_d1[g_dst] ? txflit_h_d1[g_dst][FLIT_WIDTH-1:0] :
-                        (txflit_arb_m_nxt_upd_d1[g_dst] ? txflit_m_d1[g_dst][FLIT_WIDTH-1:0] :
-                         (txflit_arb_l_nxt_upd_d1[g_dst] ? txflit_l_d1[g_dst][FLIT_WIDTH-1:0] :
-                          {FLIT_WIDTH{1'b0}})));
+                    (txflit_arb_h_nxt_upd_d1[g_dst] ? txflit_h_d1[g_dst][FLIT_WIDTH-1:0] :
+                    (txflit_arb_m_nxt_upd_d1[g_dst] ? txflit_m_d1[g_dst][FLIT_WIDTH-1:0] :
+                    (txflit_arb_l_nxt_upd_d1[g_dst] ? txflit_l_d1[g_dst][FLIT_WIDTH-1:0] :
+                    {FLIT_WIDTH{1'b0}})));
             end
             else begin
                 assign txflitv_d1[g_dst] = 1'b0;
@@ -651,83 +615,47 @@ module chi_xp_channel #(
         end
     endgenerate
 
-    function [XP_INTF_MAX-1:
-                  0] route_xy(input [2:0] tgt_xid, input [2:0] tgt_yid, input tgt_portid);
+    function [XP_INTF_MAX-1:0] route_x(input [CHIE_NID_WIDTH-1:0] tgtid);
 
-        route_xy[XP_INTF_E]  = (tgt_xid > my_xid);
-        route_xy[XP_INTF_W]  = (tgt_xid < my_xid);
+        route_x[XP_INTF_E]  = (tgtid[1+:XP_VALID_NID_WIDTH] > my_xid[1+:XP_VALID_NID_WIDTH]) ?
+							  (tgtid[1+:XP_VALID_NID_WIDTH] - my_xid[1+:XP_VALID_NID_WIDTH] < ROUTER_NODE_NUM/2 + 1):
+							  (my_xid[1+:XP_VALID_NID_WIDTH] - tgtid[1+:XP_VALID_NID_WIDTH] > ROUTER_NODE_NUM/2);
+        route_x[XP_INTF_W]  = (tgtid[1+:XP_VALID_NID_WIDTH] < my_xid[1+:XP_VALID_NID_WIDTH]) ?
+							  (my_xid[1+:XP_VALID_NID_WIDTH] - tgtid[1+:XP_VALID_NID_WIDTH] < ROUTER_NODE_NUM/2+1):
+							  (tgtid[1+:XP_VALID_NID_WIDTH]- my_xid[1+:XP_VALID_NID_WIDTH] > ROUTER_NODE_NUM/2);
 
-        route_xy[XP_INTF_N]  = (tgt_xid == my_xid) & (tgt_yid > my_yid);
-        route_xy[XP_INTF_S]  = (tgt_xid == my_xid) & (tgt_yid < my_yid);
-
-        route_xy[XP_INTF_P0] = (tgt_xid == my_xid) & (tgt_yid == my_yid) & (tgt_portid == 1'b0);
-        route_xy[XP_INTF_P1] = (tgt_xid == my_xid) & (tgt_yid == my_yid) & (tgt_portid == 1'b1);
+        route_x[XP_INTF_P0] = (tgtid[1+:XP_VALID_NID_WIDTH] == my_xid[1+:XP_VALID_NID_WIDTH]) & (tgtid[0] == 1'b0);
+        route_x[XP_INTF_P1] = (tgtid[1+:XP_VALID_NID_WIDTH] == my_xid[1+:XP_VALID_NID_WIDTH]) & (tgtid[0] == 1'b1);
     endfunction
 
     assign rxflitv_r1[XP_INTF_E]                 = RXFLITV_E;
     assign rxflitv_r1[XP_INTF_W]                 = RXFLITV_W;
-    assign rxflitv_r1[XP_INTF_N]                 = RXFLITV_N;
-    assign rxflitv_r1[XP_INTF_S]                 = RXFLITV_S;
     assign rxflitv_r1[XP_INTF_P0]                = RXFLITV_P0;
     assign rxflitv_r1[XP_INTF_P1]                = RXFLITV_P1;
 
-    assign rxflit_r1[XP_INTF_E][FLIT_WIDTH-1:
-                                0]  = RXFLIT_E[FLIT_WIDTH-1:
-                                               0];
-    assign rxflit_r1[XP_INTF_W][FLIT_WIDTH-1:
-                                0]  = RXFLIT_W[FLIT_WIDTH-1:
-                                               0];
-    assign rxflit_r1[XP_INTF_N][FLIT_WIDTH-1:
-                                0]  = RXFLIT_N[FLIT_WIDTH-1:
-                                               0];
-    assign rxflit_r1[XP_INTF_S][FLIT_WIDTH-1:
-                                0]  = RXFLIT_S[FLIT_WIDTH-1:
-                                               0];
-    assign rxflit_r1[XP_INTF_P0][FLIT_WIDTH-1:
-                                 0] = RXFLIT_P0[FLIT_WIDTH-1:
-                                                0];
-    assign rxflit_r1[XP_INTF_P1][FLIT_WIDTH-1:
-                                 0] = RXFLIT_P1[FLIT_WIDTH-1:
-                                                0];
+    assign rxflit_r1[XP_INTF_E][FLIT_WIDTH-1:0]  = RXFLIT_E[FLIT_WIDTH-1:0];
+    assign rxflit_r1[XP_INTF_W][FLIT_WIDTH-1:0]  = RXFLIT_W[FLIT_WIDTH-1:0];
+    assign rxflit_r1[XP_INTF_P0][FLIT_WIDTH-1:0] = RXFLIT_P0[FLIT_WIDTH-1:0];
+    assign rxflit_r1[XP_INTF_P1][FLIT_WIDTH-1:0] = RXFLIT_P1[FLIT_WIDTH-1:0];
 
     assign RXLCRDV_E                             = rxlcrdv_q[XP_INTF_E];
     assign RXLCRDV_W                             = rxlcrdv_q[XP_INTF_W];
-    assign RXLCRDV_N                             = rxlcrdv_q[XP_INTF_N];
-    assign RXLCRDV_S                             = rxlcrdv_q[XP_INTF_S];
     assign RXLCRDV_P0                            = rxlcrdv_q[XP_INTF_P0];
     assign RXLCRDV_P1                            = rxlcrdv_q[XP_INTF_P1];
 
     assign txlcrdv[XP_INTF_E]                    = TXLCRDV_E;
     assign txlcrdv[XP_INTF_W]                    = TXLCRDV_W;
-    assign txlcrdv[XP_INTF_N]                    = TXLCRDV_N;
-    assign txlcrdv[XP_INTF_S]                    = TXLCRDV_S;
     assign txlcrdv[XP_INTF_P0]                   = TXLCRDV_P0;
     assign txlcrdv[XP_INTF_P1]                   = TXLCRDV_P1;
 
     assign TXFLITV_E                             = txflitv_q[XP_INTF_E];
     assign TXFLITV_W                             = txflitv_q[XP_INTF_W];
-    assign TXFLITV_N                             = txflitv_q[XP_INTF_N];
-    assign TXFLITV_S                             = txflitv_q[XP_INTF_S];
     assign TXFLITV_P0                            = txflitv_q[XP_INTF_P0];
     assign TXFLITV_P1                            = txflitv_q[XP_INTF_P1];
 
-    assign TXFLIT_E[FLIT_WIDTH-1:
-                    0]              = txflit_q[XP_INTF_E][FLIT_WIDTH-1:
-                                                          0];
-    assign TXFLIT_W[FLIT_WIDTH-1:
-                    0]              = txflit_q[XP_INTF_W][FLIT_WIDTH-1:
-                                                          0];
-    assign TXFLIT_N[FLIT_WIDTH-1:
-                    0]              = txflit_q[XP_INTF_N][FLIT_WIDTH-1:
-                                                          0];
-    assign TXFLIT_S[FLIT_WIDTH-1:
-                    0]              = txflit_q[XP_INTF_S][FLIT_WIDTH-1:
-                                                          0];
-    assign TXFLIT_P0[FLIT_WIDTH-1:
-                     0]             = txflit_q[XP_INTF_P0][FLIT_WIDTH-1:
-                                                           0];
-    assign TXFLIT_P1[FLIT_WIDTH-1:
-                     0]             = txflit_q[XP_INTF_P1][FLIT_WIDTH-1:
-                                                           0];
+    assign TXFLIT_E[FLIT_WIDTH-1:0]              = txflit_q[XP_INTF_E][FLIT_WIDTH-1:0];
+    assign TXFLIT_W[FLIT_WIDTH-1:0]              = txflit_q[XP_INTF_W][FLIT_WIDTH-1:0];
+    assign TXFLIT_P0[FLIT_WIDTH-1:0]             = txflit_q[XP_INTF_P0][FLIT_WIDTH-1:0];
+    assign TXFLIT_P1[FLIT_WIDTH-1:0]             = txflit_q[XP_INTF_P1][FLIT_WIDTH-1:0];
 
 endmodule
