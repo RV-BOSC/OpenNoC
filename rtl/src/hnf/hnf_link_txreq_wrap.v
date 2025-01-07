@@ -28,7 +28,7 @@ module hnf_link_txreq_wrap `HNF_PARAM
         //inputs from hnf_link
         txreq_lcrdv,
 
-        //inputs from hnf_mshr_fastpath
+        //inputs from hnf_mshr_bypass
         mshr_txreq_bypass_valid_s1,
         mshr_txreq_bypass_qos_s1,
         mshr_txreq_bypass_txnid_s1,
@@ -70,7 +70,7 @@ module hnf_link_txreq_wrap `HNF_PARAM
         //outputs to hnf_mshr_ctl
         txreq_mshr_won_sx1,
 
-        //outputs to hnf_mshr_fastpath
+        //outputs to hnf_mshr_bypass
         txreq_mshr_bypass_won_s1
     );
 
@@ -81,7 +81,7 @@ module hnf_link_txreq_wrap `HNF_PARAM
     //inputs from hnf_link
     input wire                                        txreq_lcrdv;
 
-    //inputs from hnf_mshr_fastpath
+    //inputs from hnf_mshr_bypass
     input wire                                        mshr_txreq_bypass_valid_s1;
     input wire [`CHIE_REQ_FLIT_QOS_WIDTH-1:0]         mshr_txreq_bypass_qos_s1;
     input wire [`CHIE_REQ_FLIT_TXNID_WIDTH-1:0]       mshr_txreq_bypass_txnid_s1;
@@ -123,7 +123,7 @@ module hnf_link_txreq_wrap `HNF_PARAM
     //outputs to hnf_mshr_ctl
     output wire                                       txreq_mshr_won_sx1;
 
-    //outputs to hnf_mshr_fastpath
+    //outputs to hnf_mshr_bypass
     output wire                                       txreq_mshr_bypass_won_s1;
 
     //internal reg signals

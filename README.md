@@ -38,42 +38,53 @@ SXP中代码只有单个通道的功能: `rtl/misc/chi_xp_channel.v` ,如何组�
 ### 3.1.2 HNF 参数配置
 以下是一些 HNF 参数配置，可根据需求修改 rtl/include/hnf_param.v 文件下的 HNF_PARAM 宏包含内容。除了以下说明的参数，HNF_PARAM 宏下的其他参数请使用默认值。需要额外说明的是 L3 CacheLineSize 固定为64字节。
 
-* CHIE_REQ_ADDR_WIDTH_PARAM
-  * REQ 报文地址位宽
-* CHIE_SNP_ADDR_WIDTH_PARAM
-  * SNP 报文地址位宽。CHI e.b 协议规定该值为 (CHIE_REQ_ADDR_WIDTH_PARAM-3)
-* HNF_MSHR_RNF_NUM_PARAM
-  * NoC 中 RNF 个数。
-* RNF_NID_LIST_PARAM
-  * NoC 中 RNF nodeid 列表
-* HNF_NID_PARAM
-  * HNF nodeid
-* SNF_NID_PARAM
-  * SNF nodeid
-* XP_LCRD_NUM_PARAM
-  * HNF 各通道的 L-Credit 最大计数值。最大值为15
-* HNF_SF_ENTRIES_NUM_PARAM
-  * Snoop Filter Entry 总数目
-* HNF_SF_WAY_NUM_PARAM
-  * Snoop Filter Way
-* HNF_L3_CACHE_SIZE_PARAM
-  * L3 Cache 总大小，单位为KB
-* HNF_L3_WAY_NUM_PARAM
-  * L3 Cache way
+|    参数名称                   |         说明                              | 默认值 |
+| :---------------------------: | :---------------------------------------: | :----: |
+| CHIE_REQ_ADDR_WIDTH_PARAM   | REQ 报文地址位宽                          | 44     |
+| CHIE_SNP_ADDR_WIDTH_PARAM   | SNP 报文地址位宽。CHI e.b 协议规定该值为 (CHIE_REQ_ADDR_WIDTH_PARAM-3) | 41      |
+| CHIE_NID_WIDTH_PARAM        | CHI e.b 协议规定该值为（7-11）             | 7       |
+| CHIE_DATA_WIDTH_PARAM       | CHI DAT通道的数据位宽（暂不支持配置）        | 256     |
+| CHIE_BE_WIDTH_PARAM         | CHI DAT通道的BE位宽，需与数据位宽对应（CHIE_DATA_WIDTH_PARAM/8）| 32      |
+| CHIE_DATACHECK_WIDTH_PARAM  | CHI DAT通道的DataCheck位宽，需与数据位宽对应（0 或 CHIE_DATA_WIDTH_PARAM/8）| 32      |
+| CHIE_POISON_WIDTH_PARAM     | CHI DAT通道的Poison位宽，需与数据位宽对应（0 或 CHIE_DATA_WIDTH_PARAM/64）| 4       |
+| CHIE_REQ_RSVDC_WIDTH_PARAM  | CHI REQ通道用户自定义位宽                        | 0       |
+| CHIE_DAT_RSVDC_WIDTH_PARAM  | CHI DAT通道用户自定义位宽                        | 0       |
+| HNF_MSHR_RNF_NUM_PARAM      | NoC 中 RNF 个数                          | 4      |
+| HNF_MSHR_RNI_NUM_PARAM      | NoC 中 RNI 个数                          | 0      |
+| RNF_NID_LIST_PARAM          | NoC 中 RNF nodeid 列表                    | {7'd48,7'd16,7'd40,7'd8} |
+| RNI_NID_LIST_PARAM          | NoC 中 RNI nodeid 列表                    | {7'd1} |
+| HNF_NID_PARAM               | HNF nodeid                                | 0      |
+| SNF_NID_PARAM               | SNF nodeid                               | 32      |
+| XP_LCRD_NUM_PARAM           | HNF 各通道的 L-Credit 最大计数值。最大值为15 | 15     |
+| HNF_SF_ENTRIES_NUM_PARAM    | Snoop Filter Entry 总数目                  | 131072     |
+| HNF_SF_WAY_NUM_PARAM        | Snoop Filter Way                            | 16      |
+| HNF_MSHR_EXCL_RN_NUM_PARAM  | 用于表示 Global Monitor 模块中的数据标签的项数，最大项数取决于RN个数及RN支持的LP个数，LP个数默认支持8项 | 32      |
+| HNF_MSHR_EXCL_RN_WIDTH_PARAM| 用于表示 Global Monitor 模块中的数据标签的项数位宽，需与HNF_MSHR_EXCL_RN_NUM_PARAM对应 | 5       |
+| HNF_MSHR_ENTRIES_NUM_PARAM  | 支持处理队列Entry的项数                   | 32      |
+| HNF_MSHR_ENTRIES_WIDTH_PARAM| 支持处理队列Entry的项数位宽，需与HNF_MSHR_ENTRIES_NUM_PARAM对应 | 5       |
+| HNF_L3_CACHE_SIZE_PARAM     | L3 Cache 总大小，单位为KB                  | 4096  |
+| HNF_L3_WAY_NUM_PARAM        | L3 Cache way                                | 16      |
 
 ### 3.1.3 RNI 参数配置
 以下是一些 RNI 参数配置，可根据需求修改 rtl/include/rni_param.v 文件下的 RNI_PARAM 宏包含内容。除了以下说明的参数，RNI_PARAM 宏下的其他参数请使用默认值。
 
-* CHIE_NID_WIDTH_PARAM
-  * NODEID 的位宽，CHI e.b 协议规定该值为（7-11）
-* CHIE_REQ_ADDR_WIDTH_PARAM
-  * REQ 报文地址位宽
-* CHIE_SNP_ADDR_WIDTH_PARAM
-  * SNP 报文地址位宽。CHI e.b 协议规定该值为 (CHIE_REQ_ADDR_WIDTH_PARAM-3)
-* RNI_NID_PARAM
-  * RNI nodeid
-* HNF_NID_PARAM
-  * HNF nodeid
+|    参数名称                   |         说明                              | 默认值 |
+| :---------------------------: | :---------------------------------------: | :----: |
+| AXI4_PA_WIDTH_PARAM        | AXI4 地址位宽                            | 44     |
+| AXI4_AXDATA_WIDTH_PARAM    | AXI4 数据位宽（暂不支持配置）               | 128    |
+| CHIE_NID_WIDTH_PARAM       | NODEID 的位宽，CHI e.b 协议规定该值为（7-11） | 11     |
+| CHIE_REQ_RSVDC_WIDTH_PARAM | REQ 报文用户自定义位宽                    | 0      |
+| CHIE_DAT_RSVDC_WIDTH_PARAM | DAT 报文用户自定义位宽                    | 0      |
+| CHIE_REQ_ADDR_WIDTH_PARAM  | REQ 报文地址位宽                          | 44     |
+| CHIE_SNP_ADDR_WIDTH_PARAM  | SNP 报文地址位宽。CHI e.b 协议规定该值为 (CHIE_REQ_ADDR_WIDTH_PARAM-3) | 41     |
+| CHIE_PA_WIDTH_PARAM        | PA 报文地址位宽                            | 44     |
+| CHIE_DATA_WIDTH_PARAM      | DAT 报文数据位宽（暂不支持配置）               | 256    |
+| CHIE_BE_WIDTH_PARAM        | DAT 报文BE位宽，需与数据位宽对应（CHIE_DATA_WIDTH_PARAM/8） | 32     |
+| CHIE_POISON_WIDTH_PARAM    | DAT 报文Poison位宽，需与数据位宽对应（0 或 CHIE_DATA_WIDTH_PARAM/64） | 0      |
+| CHIE_DATACHECK_WIDTH_PARAM | DAT 报文DataCheck位宽，需与数据位宽对应（0 或 CHIE_DATA_WIDTH_PARAM/8） | 0      |
+| RNI_NID_PARAM              | RNI nodeid                                | 6      |
+| HNF_NID_PARAM              | HNF nodeid                                | 0      |
+
 ### 3.1.4 HNI 参数配置
 
 以下是一些 HNI 参数配置，可根据需求例化时指定。

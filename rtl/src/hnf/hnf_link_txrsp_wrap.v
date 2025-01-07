@@ -28,7 +28,7 @@ module hnf_link_txrsp_wrap `HNF_PARAM
         //inputs from hnf_link
         txrsp_lcrdv,
 
-        //inputs from hnf_mshr_fastpath
+        //inputs from hnf_mshr_bypass
         mshr_txrsp_bypass_valid_s1,
         mshr_txrsp_bypass_qos_s1,
         mshr_txrsp_bypass_tgtid_s1,
@@ -83,7 +83,7 @@ module hnf_link_txrsp_wrap `HNF_PARAM
     //inputs from hnf_link
     input wire                                     txrsp_lcrdv;
 
-    //inputs from hnf_mshr_fastpath
+    //inputs from hnf_mshr_bypass
     input wire                                     mshr_txrsp_bypass_valid_s1;
     input wire [`CHIE_RSP_FLIT_QOS_WIDTH-1:0]      mshr_txrsp_bypass_qos_s1;
     input wire [`CHIE_RSP_FLIT_TGTID_WIDTH-1:0]    mshr_txrsp_bypass_tgtid_s1;
@@ -193,7 +193,7 @@ module hnf_link_txrsp_wrap `HNF_PARAM
     //arbitration
 
     always @*begin
-        //FastPath wrap
+        //bypass wrap
         txrspflit_bypass_s1[`CHIE_RSP_FLIT_QOS_RANGE]           = mshr_txrsp_bypass_qos_s1;
         txrspflit_bypass_s1[`CHIE_RSP_FLIT_TGTID_RANGE]         = mshr_txrsp_bypass_tgtid_s1;
         txrspflit_bypass_s1[`CHIE_RSP_FLIT_SRCID_RANGE]         = HNF_NID_PARAM;

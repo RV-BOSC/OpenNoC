@@ -14,6 +14,8 @@
 *    Hongyu Gao <gaohongyu@bosc.ac.cn>
 */
 
+`include "hnf_defines.v"
+
 module hnf_biq #(
         parameter BIQ_WIDTH = -1,
         parameter BIQ_DEPTH = -1

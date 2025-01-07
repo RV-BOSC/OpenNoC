@@ -18,58 +18,35 @@
 `define HNF_DEFINES
 
 `include "chie_defines.v"
-//sram delay
-//`define HNF_DELAY_ONE_CYCLE
-// `define FPGA_MEMORY
-//sv
 
+// `define HNF_DELAY_ONE_CYCLE
+// `define FPGA_MEMORY
+// `define DISPLAY_INFO
+// `define DISPLAY_ERROR
+// `define DISPLAY_FATAL
 
 `define CHIE_RSP_CHANNEL                   1
 `define CHIE_DAT_CHANNEL                   0
 
 //global define
-`ifdef FPGA_MEMORY
-    `define RN0_ID                             0
-    `define RN1_ID                             1
-    `define RN2_ID                             8
-    `define RN3_ID                             9
-    `define HNF0_ID                            33
-    `define SN_ID                              40
-    `define RN4_ID                             64
-    `define RN5_ID                             96
-    `define RN6_ID                             73
-    `define RN7_ID                             105
-    `define RN8_ID                             10
-    `define RN9_ID                             11
-    `define RN10_ID                            12
-    `define RN11_ID                            13
-    `define RN12_ID                            14
-    `define RN13_ID                            15
-    `define RN14_ID                            16
-    `define RN15_ID                            17
-`else
 `define RN0_ID                             8
-    `define RN1_ID                             40
-    `define RN2_ID                             16
-    `define RN3_ID                             48
-    `define HNF0_ID                            0
-    `define SN_ID                              32
-    `define RN4_ID                             6
-    `define RN5_ID                             7
-    `define RN6_ID                             9
-    `define RN7_ID                             10
-    `define RN8_ID                             11
-    `define RN9_ID                             12
-    `define RN10_ID                            13
-    `define RN11_ID                            14
-    `define RN12_ID                            15
-    `define RN13_ID                            17
-    `define RN14_ID                            18
-    `define RN15_ID                            19
-//`define DISPLAY_INFO ON
-//`define DISPLAY_ERROR ON
-//`define DISPLAY_FATAL ON
-`endif
+`define RN1_ID                             40
+`define RN2_ID                             16
+`define RN3_ID                             48
+`define HNF0_ID                            0
+`define SN_ID                              32
+`define RN4_ID                             6
+`define RN5_ID                             7
+`define RN6_ID                             9
+`define RN7_ID                             10
+`define RN8_ID                             11
+`define RN9_ID                             12
+`define RN10_ID                            13
+`define RN11_ID                            14
+`define RN12_ID                            15
+`define RN13_ID                            17
+`define RN14_ID                            18
+`define RN15_ID                            19
 
 `ifdef DISPLAY_INFO
 `define display_info(info)                    $display(info);
@@ -87,7 +64,11 @@
 `define CACHE_BE_WIDTH                     CHIE_BE_WIDTH_PARAM*2
 `define CACHE_BLOCK_OFFSET                 6
 `define RNF_NUM                            HNF_MSHR_RNF_NUM_PARAM
-`define RNF_WIDTH                          ((HNF_MSHR_RNF_NUM_PARAM <= 3)? 2 : (HNF_MSHR_RNF_NUM_PARAM <= 7)? 3 : (HNF_MSHR_RNF_NUM_PARAM <= 15)? 4 : (HNF_MSHR_RNF_NUM_PARAM <= 31)? 5 : 6)
+`define RNI_NUM                            HNF_MSHR_RNI_NUM_PARAM
+`define RN_NUM                             (HNF_MSHR_RNF_NUM_PARAM + HNF_MSHR_RNI_NUM_PARAM)
+`define RNF_WIDTH                          ((HNF_MSHR_RNF_NUM_PARAM == 1)? 1 : $clog2(HNF_MSHR_RNF_NUM_PARAM))
+`define RNI_WIDTH                          ((HNF_MSHR_RNI_NUM_PARAM <= 1)? 1 : $clog2(HNF_MSHR_RNI_NUM_PARAM))
+`define RN_WIDTH                           ((`RN_NUM == 1)? 1 : $clog2(`RN_NUM))
 `define MSHR_ENTRIES_NUM                   HNF_MSHR_ENTRIES_NUM_PARAM
 `define MSHR_ENTRIES_WIDTH                 HNF_MSHR_ENTRIES_WIDTH_PARAM
 
@@ -169,14 +150,14 @@
 `define QOS_MED_MIN                        8
 `define QOS_LOW_MAX                        7
 `define QOS_LOW_MIN                        0
-`define QOS_POOL_CNT_WIDTH                 4
-`define QOS_HHIGH_POOL_NUM                 2
-`define QOS_HIGH_POOL_NUM                  6
-`define QOS_MED_POOL_NUM                   8
-`define QOS_LOW_POOL_NUM                   15
+`define QOS_POOL_CNT_WIDTH                 ((HNF_MSHR_ENTRIES_NUM_PARAM == 32)? 4 : 5)
+`define QOS_HHIGH_POOL_NUM                 ((HNF_MSHR_ENTRIES_NUM_PARAM == 32)? 2 : 4)
+`define QOS_HIGH_POOL_NUM                  ((HNF_MSHR_ENTRIES_NUM_PARAM == 32)? 6 : 12)
+`define QOS_MED_POOL_NUM                   ((HNF_MSHR_ENTRIES_NUM_PARAM == 32)? 8 : 16)
+`define QOS_LOW_POOL_NUM                   ((HNF_MSHR_ENTRIES_NUM_PARAM == 32)? 15 : 31)
 `define RET_BANK_CNT_WIDTH                 10
 `define RET_BANK_ENTRIES_NUM               HNF_MSHR_RNF_NUM_PARAM
-`define RET_BANK_ENTRIES_WIDTH             $clog2(HNF_MSHR_RNF_NUM_PARAM)
+`define RET_BANK_ENTRIES_WIDTH             ((HNF_MSHR_RNF_NUM_PARAM == 1)? 1 : $clog2(HNF_MSHR_RNF_NUM_PARAM))
 `define MAX_WAIT_CNT_WIDTH                 4
 `define LOW2MED_MAX_CNT                    5
 `define MED2HIGH_MAX_CNT                   5
@@ -192,7 +173,7 @@
 `define RETRY_ACKQ_QOS_RANGE               `CHIE_REQ_FLIT_QOS_WIDTH+`CHIE_REQ_FLIT_TXNID_WIDTH+`CHIE_REQ_FLIT_SRCID_WIDTH-1:`CHIE_REQ_FLIT_TXNID_WIDTH+`CHIE_REQ_FLIT_SRCID_WIDTH
 `define RETRY_ACKQ_TRACE_RANGE             `CHIE_REQ_FLIT_TRACETAG_WIDTH+`CHIE_REQ_FLIT_QOS_WIDTH+`CHIE_REQ_FLIT_TXNID_WIDTH+`CHIE_REQ_FLIT_SRCID_WIDTH-1:`CHIE_REQ_FLIT_QOS_WIDTH+`CHIE_REQ_FLIT_TXNID_WIDTH+`CHIE_REQ_FLIT_SRCID_WIDTH
 `define RETRY_ACKQ_PCRDTYPE_RANGE          `CHIE_REQ_FLIT_PCRDTYPE_WIDTH+`CHIE_REQ_FLIT_TRACETAG_WIDTH+`CHIE_REQ_FLIT_QOS_WIDTH+`CHIE_REQ_FLIT_TXNID_WIDTH+`CHIE_REQ_FLIT_SRCID_WIDTH-1:`CHIE_REQ_FLIT_TRACETAG_WIDTH+`CHIE_REQ_FLIT_QOS_WIDTH+`CHIE_REQ_FLIT_TXNID_WIDTH+`CHIE_REQ_FLIT_SRCID_WIDTH
-`define PCRDGRANTQ_DATA_DEPTH              31
+`define PCRDGRANTQ_DATA_DEPTH              `MSHR_ENTRIES_NUM-1
 `define PCRDGRANTQ_DATA_WIDTH              `CHIE_REQ_FLIT_SRCID_WIDTH+`CHIE_REQ_FLIT_QOS_WIDTH+`CHIE_REQ_FLIT_PCRDTYPE_WIDTH
 `define PCRDGRANTQ_DATA_RANGE              `CHIE_REQ_FLIT_SRCID_WIDTH+`CHIE_REQ_FLIT_QOS_WIDTH+`CHIE_REQ_FLIT_PCRDTYPE_WIDTH-1:0
 `define PCRDGRANTQ_SRCID_RANGE             `CHIE_REQ_FLIT_SRCID_WIDTH-1:0

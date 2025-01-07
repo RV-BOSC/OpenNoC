@@ -19,8 +19,6 @@
 `ifndef CHIE_DEFINES
 `define CHIE_DEFINES
 
-
-`define CHIE_REQ_ADDR_WIDTH_PARAM                   44
 // CHIE REQ FLIT
 `define CHIE_REQ_FLIT_QOS_WIDTH                        4
 `define CHIE_REQ_FLIT_QOS_LSB                          0

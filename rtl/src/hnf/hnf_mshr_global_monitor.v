@@ -47,7 +47,7 @@ module hnf_mshr_global_monitor `HNF_PARAM (clk,
     input  wire [`CHIE_REQ_FLIT_LPID_WIDTH-1:0]              li_mshr_rxreq_lpid_s0;
     input  wire [`CHIE_REQ_FLIT_EXCL_WIDTH-1:0]              li_mshr_rxreq_excl_s0;
 
-    //outputs to hnf_mshr_ctl and hnf_mshr_fastpath
+    //outputs to hnf_mshr_ctl and hnf_mshr_bypass
     output wire                                              excl_pass_s1;
     output wire                                              excl_fail_s1;
 

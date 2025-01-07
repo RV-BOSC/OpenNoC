@@ -100,8 +100,8 @@ module hnf_link_txdat_wrap `HNF_PARAM
     reg [`MSHR_ENTRIES_WIDTH-1:0]                 dbf_txdat_idx_entry2_sx;
     reg [`CHIE_DAT_FLIT_BE_WIDTH*2-1:0]           dbf_txdat_be_entry2_sx;
     reg [1:0]                                     dbf_txdat_pe_entry2_sx;
-    reg [`HNF_LCRD_DAT_CNT_WIDTH-1:0]           txdat_crd_cnt_q;
-    reg [`HNF_LCRD_DAT_CNT_WIDTH-1:0]           dat_crd_cnt_ns_s0;
+    reg [`HNF_LCRD_DAT_CNT_WIDTH-1:0]             txdat_crd_cnt_q;
+    reg [`HNF_LCRD_DAT_CNT_WIDTH-1:0]             dat_crd_cnt_ns_s0;
     reg                                           dbf_txdat_valid_entry2_sx_ns;
     wire [`CHIE_DAT_FLIT_DATAID_WIDTH-1:0]        mshr_txdat_dataid_sx_ns;
     reg [`CHIE_DAT_FLIT_BE_WIDTH-1:0]             mshr_txdat_be_sx_ns;
@@ -118,9 +118,9 @@ module hnf_link_txdat_wrap `HNF_PARAM
     wire                                          txdatflitv_s0;
     wire                                          txdat_crd_cnt_dec_sx;
     wire                                          update_dat_crd_cnt_s0;
-    wire [`HNF_LCRD_DAT_CNT_WIDTH-1:0]          dat_crd_cnt_s1;
-    wire [`HNF_LCRD_DAT_CNT_WIDTH-1:0]          dat_crd_cnt_inc_s0;
-    wire [`HNF_LCRD_DAT_CNT_WIDTH-1:0]          dat_crd_cnt_dec_s0;
+    wire [`HNF_LCRD_DAT_CNT_WIDTH-1:0]            dat_crd_cnt_s1;
+    wire [`HNF_LCRD_DAT_CNT_WIDTH-1:0]            dat_crd_cnt_inc_s0;
+    wire [`HNF_LCRD_DAT_CNT_WIDTH-1:0]            dat_crd_cnt_dec_s0;
     wire                                          dbf_txdat_entry1_dealloc_sx;
     wire                                          dbf_txdat_entry2_dealloc_sx;
 
@@ -173,6 +173,16 @@ module hnf_link_txdat_wrap `HNF_PARAM
                 txdatflit_mshr_s0[`CHIE_DAT_FLIT_RSVDC_RANGE] = {`CHIE_DAT_FLIT_RSVDC_WIDTH{1'b0}};
             end
         end
+        if(CHIE_DATACHECK_WIDTH_PARAM != 0)begin
+            always @*begin
+                txdatflit_mshr_s0[`CHIE_DAT_FLIT_DATACHECK_RANGE] = {`CHIE_DAT_FLIT_DATACHECK_WIDTH{1'b0}};
+            end
+        end
+        if(CHIE_POISON_WIDTH_PARAM != 0)begin
+            always @*begin
+                txdatflit_mshr_s0[`CHIE_DAT_FLIT_POISON_RANGE] = {`CHIE_DAT_FLIT_POISON_WIDTH{1'b0}};
+            end
+        end
     endgenerate
 
     always @*begin : combinational_logic1
@@ -195,8 +205,6 @@ module hnf_link_txdat_wrap `HNF_PARAM
         txdatflit_mshr_s0[`CHIE_DAT_FLIT_TRACETAG_RANGE]  = {`CHIE_DAT_FLIT_TRACETAG_WIDTH{1'b0}};
         txdatflit_mshr_s0[`CHIE_DAT_FLIT_BE_RANGE]        = mshr_txdat_be_sx_ns;
         txdatflit_mshr_s0[`CHIE_DAT_FLIT_DATA_RANGE]      = mshr_txdat_data_sx_ns;
-        txdatflit_mshr_s0[`CHIE_DAT_FLIT_DATACHECK_RANGE] = {`CHIE_DAT_FLIT_DATACHECK_WIDTH{1'b0}};
-        txdatflit_mshr_s0[`CHIE_DAT_FLIT_POISON_RANGE]    = {`CHIE_DAT_FLIT_POISON_WIDTH{1'b0}};
     end
 
     assign txdatflit_s0            = txdatflit_mshr_s0;

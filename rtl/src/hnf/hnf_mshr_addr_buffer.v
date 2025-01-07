@@ -55,8 +55,8 @@ module hnf_mshr_addr_buffer `HNF_PARAM (clk,
     //compare req
     input wire                                                   li_mshr_rxreq_valid_s0;//inputs from hnf_link_rxreq_parse
     input wire [`CHIE_REQ_FLIT_ADDR_WIDTH-1:0]                   li_mshr_rxreq_addr_s0;//inputs from hnf_link_rxreq_parse
-    output reg                                                  rxreq_cam_hazard_s1_q;//outputs to hnf_mshr_fastpath and hnf_mshr_ctl
-    output reg [`MSHR_ENTRIES_NUM-1:0]                          rxreq_cam_hazard_entry_s1_q;//outputs to hnf_mshr_fastpath and hnf_mshr_ctl
+    output reg                                                  rxreq_cam_hazard_s1_q;//outputs to hnf_mshr_bypass and hnf_mshr_ctl
+    output reg [`MSHR_ENTRIES_NUM-1:0]                          rxreq_cam_hazard_entry_s1_q;//outputs to hnf_mshr_bypass and hnf_mshr_ctl
 
     //compare pipe
     input wire [`CHIE_REQ_FLIT_ADDR_WIDTH-1:0]                   pipe_mshr_addr_sx2_q;//inputs from hnf_cache_pipeline
@@ -194,7 +194,7 @@ module hnf_mshr_addr_buffer `HNF_PARAM (clk,
         rxreq_cam_hazard_s1_q = 1'b0;
         rxreq_cam_hazard_entry_s1_q = 'd0;
         for(i=0;i<`MSHR_ENTRIES_NUM;i=i+1)begin
-            if(li_mshr_rxreq_valid_s1_q && abf_can_compare_sx_q[i] == 1'b1 && abf_sx_q[i][`CHIE_REQ_FLIT_ADDR_WIDTH-1:`CACHE_BLOCK_OFFSET] == li_mshr_rxreq_addr_s1_q[`CHIE_REQ_FLIT_ADDR_WIDTH-1:`CACHE_BLOCK_OFFSET]
+            if(mshr_alloc_en_s1_q && abf_can_compare_sx_q[i] == 1'b1 && abf_sx_q[i][`CHIE_REQ_FLIT_ADDR_WIDTH-1:`CACHE_BLOCK_OFFSET] == li_mshr_rxreq_addr_s1_q[`CHIE_REQ_FLIT_ADDR_WIDTH-1:`CACHE_BLOCK_OFFSET]
                     && ~(mshr_dbf_retired_valid_sx1_q == 1'b1 && mshr_dbf_retired_idx_sx1_q == i) && ~(l3_evict_sx7_q == 1'b1 && l3_mshr_entry_sx7_q == i))begin
                 rxreq_cam_hazard_s1_q = 1'b1;
                 rxreq_cam_hazard_entry_s1_q = trans_id2num(i);

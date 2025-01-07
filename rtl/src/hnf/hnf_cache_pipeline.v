@@ -838,7 +838,7 @@ module hnf_cache_pipeline `HNF_PARAM
 
     always @(*)begin : func_rnfid2physicalid
         integer i;
-        pipe_nodeid_list_sx2[`RNF_NUM*NID_WIDTH-1:0]     = RNF_NID_LIST_PARAM;
+        pipe_nodeid_list_sx2[`RNF_NUM*NID_WIDTH-1:0]      = RNF_NID_LIST_PARAM;
         pipe_physical_nodeid_sx2[NID_WIDTH-1:0]          = {NID_WIDTH{1'b0}};
         pipe_rnfid_found_sx2                             = 0;
         for (i = 0; i < `RNF_NUM; i = i+1) begin
@@ -859,11 +859,11 @@ module hnf_cache_pipeline `HNF_PARAM
             pipe_sf_self_mask_sx3_q[`RNF_NUM*2-1:0]        <= 0;
         end
         else begin
-            pipe_sf_other_valid_mask_sx3_q[`RNF_NUM*2-1:0] <= ~({`RNF_NUM{2'b10}} | (2'b01 << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0])));//01010101010101010101010101010100
-            pipe_sf_other_share_mask_sx3_q[`RNF_NUM*2-1:0] <= ~({`RNF_NUM{2'b01}} | (2'b10 << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0])));//10101010101010101010101010101000
-            pipe_sf_self_valid_mask_sx3_q[`RNF_NUM*2-1:0]  <= {`RNF_NUM{2'b00}} | (2'b01 << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0]));//00000000000000000000000000000001
-            pipe_sf_self_share_mask_sx3_q[`RNF_NUM*2-1:0]  <= {`RNF_NUM{2'b00}} | (2'b10 << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0]));//00000000000000000000000000000010
-            pipe_sf_self_mask_sx3_q[`RNF_NUM*2-1:0]        <= {`RNF_NUM{2'b00}} | (2'b11 << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0]));//00000000000000000000000000000011
+            pipe_sf_other_valid_mask_sx3_q[`RNF_NUM*2-1:0] <= ~({`RNF_NUM{2'b10}} | (({2{pipe_rnfid_found_sx2}} & 2'b01) << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0])));//01010101010101010101010101010100
+            pipe_sf_other_share_mask_sx3_q[`RNF_NUM*2-1:0] <= ~({`RNF_NUM{2'b01}} | (({2{pipe_rnfid_found_sx2}} & 2'b10) << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0])));//10101010101010101010101010101000
+            pipe_sf_self_valid_mask_sx3_q[`RNF_NUM*2-1:0]  <= {`RNF_NUM{2'b00}} | (({2{pipe_rnfid_found_sx2}} & 2'b01) << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0]));//00000000000000000000000000000001
+            pipe_sf_self_share_mask_sx3_q[`RNF_NUM*2-1:0]  <= {`RNF_NUM{2'b00}} | (({2{pipe_rnfid_found_sx2}} & 2'b10) << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0]));//00000000000000000000000000000010
+            pipe_sf_self_mask_sx3_q[`RNF_NUM*2-1:0]        <= {`RNF_NUM{2'b00}} | (({2{pipe_rnfid_found_sx2}} & 2'b11) << (2*pipe_physical_nodeid_sx2[NID_WIDTH-1:0]));//00000000000000000000000000000011
         end
     end
 
@@ -1576,7 +1576,7 @@ module hnf_cache_pipeline `HNF_PARAM
     //////////////////////////////////////////////////////////////////////////////
     // Add new SF entry if need insert but miss and no free entry
     //////////////////////////////////////////////////////////////////////////////
-    assign pipe_sf_insert_sx4 = ~(pipe_sf_self_match_sx4 | pipe_sf_other_match_sx4) & ~pipe_fill_sx4 & (op_rdnsd_sx4_q | op_rdclean_sx4_q | op_rdunique_sx4_q | op_dl_mu_sx4_q | op_dl_cu_sx4_q) & pipe_req_valid_sx[SX4];
+    assign pipe_sf_insert_sx4 = ~(pipe_sf_self_match_sx4 | pipe_sf_other_match_sx4) & ~pipe_fill_sx4 & (op_rdnsd_sx4_q | op_rdclean_sx4_q | op_rdunique_sx4_q | op_dl_mu_sx4_q | op_dl_cu_sx4_q) & pipe_req_valid_sx[SX4] & ~((`RNF_NUM == 1) & (`RNI_NUM == 0));
 
     // SF evict
     assign pipe_sf_evict_sx4 = pipe_sf_insert_sx4 & ~pipe_sf_free_sx4;
@@ -1696,8 +1696,8 @@ module hnf_cache_pipeline `HNF_PARAM
             pipe_sf_other_hit_sx5_q                                     <= 1'b0;
             pipe_sf_hit_sx5_q                                           <= 1'b0;
             pipe_sf_wr_sx5_q                                            <= 1'b0;
-            pipe_sf_tgt_vec_sx5_q[`RNF_NUM-1:0]                         <= {`RNF_NUM{1'b0}};
-            pipe_biq_hit_tgt_vec_sx5_q[`RNF_NUM-1:0]                    <= {`RNF_NUM{1'b0}};
+            pipe_sf_tgt_vec_sx5_q[`RNF_NUM-1:0]                          <= {`RNF_NUM{1'b0}};
+            pipe_biq_hit_tgt_vec_sx5_q[`RNF_NUM-1:0]                     <= {`RNF_NUM{1'b0}};
             pipe_sf_evict_sx5_q                                         <= 1'b0;
             pipe_sf_wr_way_sx5_q[`SF_WAY_NUM-1:0]                       <= {`SF_WAY_NUM{1'b0}};
             pipe_sf_wr_state_sx5_q[`SF_CLINE_WIDTH-1:0]                 <= {`SF_CLINE_WIDTH{1'b0}};
@@ -1707,8 +1707,8 @@ module hnf_cache_pipeline `HNF_PARAM
             pipe_sf_other_hit_sx5_q                                     <= pipe_sf_other_match_sx4;
             pipe_sf_hit_sx5_q                                           <= pipe_sf_other_match_sx4 | pipe_sf_self_match_sx4;
             pipe_sf_wr_sx5_q                                            <= pipe_sf_wr_sx4;
-            pipe_sf_tgt_vec_sx5_q[`RNF_NUM-1:0]                         <= pipe_sf_tgt_vec_sx4[`RNF_NUM-1:0];
-            pipe_biq_hit_tgt_vec_sx5_q[`RNF_NUM-1:0]                    <= pipe_biq_hit_tgt_vec_sx5[`RNF_NUM-1:0];
+            pipe_sf_tgt_vec_sx5_q[`RNF_NUM-1:0]                          <= pipe_sf_tgt_vec_sx4[`RNF_NUM-1:0];
+            pipe_biq_hit_tgt_vec_sx5_q[`RNF_NUM-1:0]                     <= pipe_biq_hit_tgt_vec_sx5[`RNF_NUM-1:0];
             pipe_sf_evict_sx5_q                                         <= pipe_sf_evict_sx4;
             pipe_sf_wr_way_sx5_q[`SF_WAY_NUM-1:0]                       <= pipe_sf_wr_way_sx4[`SF_WAY_NUM-1:0];
             pipe_sf_wr_state_sx5_q[`SF_CLINE_WIDTH-1:0]                 <= {pipe_addr_sx4[`SF_TAG_RANGE], pipe_sf_wr_state_sx4[`RNF_NUM*2-1:0]};
@@ -2081,7 +2081,7 @@ module hnf_cache_pipeline `HNF_PARAM
             l3_sfhit_sx7_q      <= pipe_sf_other_hit_sx5_q | biq_hit;
             l3_snpdirect_sx7_q  <= (pipe_sf_hit_count_sx5[`RNF_WIDTH-1:0] == 1);
             l3_snpbrd_sx7_q     <= (pipe_sf_other_hit_sx5_q & (pipe_sf_hit_count_sx5[`RNF_WIDTH-1:0] > 1) & !pipe_biq_hit_cancel_brd_sx5) | (biq_hit & (~pipe_biq_hit_cancel_brd_sx5));
-            l3_snp_bit_sx7_q    <= biq_hit?pipe_biq_hit_tgt_vec_sx5_q[HNF_MSHR_RNF_NUM_PARAM-1:0]: pipe_sf_tgt_vec_sx5_q[HNF_MSHR_RNF_NUM_PARAM-1:0];
+            l3_snp_bit_sx7_q    <= biq_hit?pipe_biq_hit_tgt_vec_sx5_q[`RNF_NUM-1:0]: pipe_sf_tgt_vec_sx5_q[`RNF_NUM-1:0];
             l3_replay_sx7_q     <= pipe_hazard_fail_sx5 | mshr_l3_hazard_valid_sx3_q | biq_evict_retry_sx5;
             l3_mshr_wr_op_sx7_q <= ~(pipe_hazard_fail_sx5 | mshr_l3_hazard_valid_sx3_q | biq_evict_retry_sx5) & cpl_internal_wr_sx5;
             l3_evict_sx7_q      <= 1'b0;

@@ -74,7 +74,7 @@ module hnf_mshr_ctl `HNF_PARAM
         excl_pass_s1,
         excl_fail_s1,
 
-        //inputs from hnf_mshr_fastpath
+        //inputs from hnf_mshr_bypass
         txreq_mshr_bypass_lost_s1,
         txrsp_mshr_bypass_lost_s1,
 
@@ -228,7 +228,7 @@ module hnf_mshr_ctl `HNF_PARAM
     input wire                                                       excl_pass_s1;
     input wire                                                       excl_fail_s1;
 
-    //inputs from hnf_mshr_fastpath
+    //inputs from hnf_mshr_bypass
     input wire                                                       txreq_mshr_bypass_lost_s1;
     input wire                                                       txrsp_mshr_bypass_lost_s1;
 
@@ -484,6 +484,8 @@ module hnf_mshr_ctl `HNF_PARAM
     reg                                         found_txreq_wrap_other_ptr;
     reg [`MSHR_ENTRIES_WIDTH-1:0]               txreq_wrap_other_idx;
     reg [`MSHR_ENTRIES_NUM-1:0]                 txreq_wrap_other_ptr_vector;
+    reg                                         mshr_retry_ageq_sel_success;
+    reg [`MSHR_ENTRIES_NUM-1:0]                 mshr_retry_rdy_entry_s1_q;
 
     wire                                        op_rdnosnp;
     wire [`MSHR_ENTRIES_NUM-1:0]                mshr_rdnosnp_set_s0;
@@ -760,6 +762,10 @@ module hnf_mshr_ctl `HNF_PARAM
     wire [`MSHR_ENTRIES_NUM-1:0]                cpl_wrap_other_vec;
     wire [`MSHR_ENTRIES_NUM-1:0]                mshr_l3_entry_vec_sx1;
     wire [`MSHR_ENTRIES_NUM-1:0]                txdat_mshr_clr_dbf_busy_entry_vec_sx3;
+    wire [`MSHR_ENTRIES_NUM-1:0]                mshr_retry_rdy_ageq_s0;
+    wire [`MSHR_ENTRIES_NUM-1:0]                mshr_retry_rdy_vec_s0;
+    wire [`MSHR_ENTRIES_NUM-1:0]                mshr_retry_rdy_entry_s0;
+    wire                                        retry_entry_found;
 
     //main function
     genvar entry;
@@ -1339,10 +1345,38 @@ module hnf_mshr_ctl `HNF_PARAM
             assign mshr_snp_memwr_s1[entry]        = (mshr_snp_get_64B_s1[entry] & mshr_snp_d_s1_q[entry] & (mshr_cu_s1_q[entry] | mshr_cs_s1_q[entry] | mshr_ci_s1_q[entry] | mshr_seq_s1_q[entry] | mshr_ro_s1_q[entry]));
             assign mshr_wup_memwr_s1[entry]        = (mshr_wup_s1_q[entry] & ~mshr_memattr_s1_q[entry][3] & (mshr_snp_getall_s1[entry] & (mshr_snpdat_entry_vec_s1_q[entry] | mshr_snprsp_entry_vec_s1_q[entry])));
             assign mshr_snp_rd_l3fill_s1[entry]    = (mshr_snp_get_64B_s1[entry] & mshr_snpdat_entry_vec_s1_q[entry] & (mshr_rdnosd_s1_q[entry] | mshr_rc_s1_q[entry]));
-            assign mshr_resent_entry_vec_s0[entry] = (mshrageq_v_sx2_q[0] & (mshrageq_mshr_idx_sx2_q[0] == entry) & (mshr_pcrdtype_s1_q[entry] == mshr_pcrd_type_get_s0) & mshr_pcrd_alloc_s0 & mshr_get_retry_s1_q[entry]) |
-                   ((mshr_pcrdtype_s1_q[entry] == mshr_pcrd_type_get_s0) & mshr_pcrd_alloc_s0 & (mshr_get_retry_s1_q[entry]));
+            assign mshr_retry_rdy_vec_s0[entry]    = ((mshr_pcrdtype_s1_q[entry] == mshr_pcrd_type_get_s0) & mshr_pcrd_alloc_s0 & mshr_get_retry_s1_q[entry]);
+            assign mshr_retry_rdy_ageq_s0[entry]   = (mshrageq_v_sx2_q[0] & (mshrageq_mshr_idx_sx2_q[0] == entry) & mshr_retry_rdy_vec_s0[entry]);
         end
     endgenerate
+
+    hnf_sel_bit_from_vec #(
+                             .ENTRIES_NUM ( `MSHR_ENTRIES_NUM )
+                         )
+                         retry_entry_find (
+                             .entry_vec      ( mshr_retry_rdy_vec_s0     ),
+                             .start_entry    ( mshr_retry_rdy_entry_s1_q ),
+                             .entry_ptr_sel  ( mshr_retry_rdy_entry_s0   ),
+                             .found          ( retry_entry_found         )
+                         );
+
+    always@*begin
+        mshr_retry_ageq_sel_success = 1'b0;
+        if(|mshr_retry_rdy_ageq_s0)begin
+            mshr_retry_ageq_sel_success = 1'b1;
+        end
+    end
+
+    assign mshr_resent_entry_vec_s0 = mshr_retry_ageq_sel_success? mshr_retry_rdy_ageq_s0 : retry_entry_found? mshr_retry_rdy_entry_s0 : {`MSHR_ENTRIES_NUM{1'b0}};
+
+    always @(posedge clk or posedge rst) begin
+        if(rst == 1'b1)begin
+            mshr_retry_rdy_entry_s1_q <= {{(`MSHR_ENTRIES_NUM-1){1'b0}},{1'b1}};
+        end
+        else if(retry_entry_found & ~mshr_retry_ageq_sel_success)begin
+            mshr_retry_rdy_entry_s1_q <= mshr_retry_rdy_entry_s0;
+        end
+    end
 
     always @(posedge clk or posedge rst)begin : mshr_snpdat_entry_vec_s1_q_timing_logic
         if(rst ==  1'b1)
@@ -1655,6 +1689,8 @@ module hnf_mshr_ctl `HNF_PARAM
 
             always @(posedge clk or posedge rst)begin : mshr_retry_s1_q_timing_logic
                 if(rst == 1'b1)
+                    mshr_retry_s1_q[entry] <= 1'b0;
+                else if(mshr_can_retire_entry_sx1[entry] || mshr_l3_evict_sx7[entry])
                     mshr_retry_s1_q[entry] <= 1'b0;
                 else if (mshr_retry_alloc_s0 && mshr_rsp_entry_vec_s0[entry])
                     mshr_retry_s1_q[entry] <= (mshr_pcrdtype_cnt_s1_q[mshr_pcrd_type_get_s0] != {`MSHR_ENTRIES_WIDTH{1'b0}});
@@ -1987,7 +2023,7 @@ module hnf_mshr_ctl `HNF_PARAM
                    = (l3_mshr_entry_sx7_q == entry) & l3_pipeval_sx7_q & l3_replay_sx7_q;
             assign mshr_l3_entry_vec_sx7[entry] = mshr_l3_val_sx7 & (l3_mshr_entry_sx7_q == entry);
             assign mshr_clr_l3busy_sx7[entry]   = mshr_l3_entry_vec_sx7[entry];
-            assign mshr_l3_rd_l3fill_sx7[entry] = mshr_l3_entry_vec_sx7[entry] & ((!l3_hit_sx7_q & l3_sfhit_sx7_q & (mshr_rdnosd_s1_q[entry] | mshr_rc_s1_q[entry])) | (mshr_ro_s1_q[entry] & l3_snpbrd_sx7_q));
+            assign mshr_l3_rd_l3fill_sx7[entry] = mshr_l3_entry_vec_sx7[entry] & ((!l3_hit_sx7_q & l3_sfhit_sx7_q & (mshr_rdnosd_s1_q[entry] | mshr_rc_s1_q[entry])));
             assign mshr_neednosnp_sx7[entry]    = mshr_l3_entry_vec_sx7[entry] & l3_rd_busy_s2_q[entry] & ((!l3_snpdirect_sx7_q & ~l3_snpbrd_sx7_q) | (l3_hit_sx7_q & (l3_opcode_sx7_q == `CHIE_READONCE | l3_opcode_sx7_q == `CHIE_READCLEAN | l3_opcode_sx7_q == `CHIE_READNOTSHAREDDIRTY)));
             assign mshr_needsnp_sx7[entry]      = mshr_l3_entry_vec_sx7[entry] & (l3_snpdirect_sx7_q | l3_snpbrd_sx7_q) & ~(l3_hit_sx7_q & (l3_opcode_sx7_q == `CHIE_READONCE | l3_opcode_sx7_q == `CHIE_READCLEAN | l3_opcode_sx7_q == `CHIE_READNOTSHAREDDIRTY));
             assign mshr_l3_memrd_sx7[entry]     = mshr_l3_entry_vec_sx7[entry] & ((l3_memrd_sx7_q & (l3_opcode_sx7_q != `CHIE_WRITEUNIQUEPTL)) | (l3_memrd_sx7_q & (l3_opcode_sx7_q == `CHIE_WRITEUNIQUEPTL) & mshr_memattr_s1_q[entry][3] & (~l3_hit_sx7_q) & (~l3_sfhit_sx7_q)));

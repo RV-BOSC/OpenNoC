@@ -259,6 +259,21 @@ module tb_snf `HNF_PARAM
 
     assign wr_en = dbg_sn_wr_en? 1'b1:wr_en_q? 1'b1:1'b0;
 
+    generate
+        if(CHIE_DATACHECK_WIDTH_PARAM != 0)begin
+            always @*begin
+                txdatflit_tmp0[`CHIE_DAT_FLIT_DATACHECK_RANGE] = {`CHIE_DAT_FLIT_DATACHECK_WIDTH{1'b0}};
+                txdatflit_tmp1[`CHIE_DAT_FLIT_DATACHECK_RANGE] = {`CHIE_DAT_FLIT_DATACHECK_WIDTH{1'b0}};
+            end
+        end
+        if(CHIE_POISON_WIDTH_PARAM != 0)begin
+            always @*begin
+                txdatflit_tmp0[`CHIE_DAT_FLIT_POISON_RANGE] = {`CHIE_DAT_FLIT_POISON_WIDTH{1'b0}};
+                txdatflit_tmp1[`CHIE_DAT_FLIT_POISON_RANGE] = {`CHIE_DAT_FLIT_POISON_WIDTH{1'b0}};
+            end
+        end
+    endgenerate
+
     always@*begin
         txdatflit_tmp0[`CHIE_DAT_FLIT_QOS_RANGE]      = {`CHIE_DAT_FLIT_QOS_WIDTH{1'b0}};
         txdatflit_tmp0[`CHIE_DAT_FLIT_TGTID_RANGE]    = txdat_tgtid;
@@ -279,8 +294,6 @@ module tb_snf `HNF_PARAM
         txdatflit_tmp0[`CHIE_DAT_FLIT_TRACETAG_RANGE] = {`CHIE_DAT_FLIT_TRACETAG_WIDTH{1'b0}};
         txdatflit_tmp0[`CHIE_DAT_FLIT_BE_RANGE]       = {`CHIE_DAT_FLIT_BE_WIDTH{1'b1}};
         txdatflit_tmp0[`CHIE_DAT_FLIT_DATA_RANGE]     = rd_data[255:0];
-        txdatflit_tmp0[`CHIE_DAT_FLIT_DATACHECK_RANGE] = {`CHIE_DAT_FLIT_DATACHECK_WIDTH{1'b0}};
-        txdatflit_tmp0[`CHIE_DAT_FLIT_POISON_RANGE]    = {`CHIE_DAT_FLIT_POISON_WIDTH{1'b0}};
     end
 
     always@*begin
@@ -303,8 +316,6 @@ module tb_snf `HNF_PARAM
         txdatflit_tmp1[`CHIE_DAT_FLIT_TRACETAG_RANGE] = {`CHIE_DAT_FLIT_TRACETAG_WIDTH{1'b0}};
         txdatflit_tmp1[`CHIE_DAT_FLIT_BE_RANGE]       = {`CHIE_DAT_FLIT_BE_WIDTH{1'b1}};
         txdatflit_tmp1[`CHIE_DAT_FLIT_DATA_RANGE]     = rd_data[511:256];
-        txdatflit_tmp1[`CHIE_DAT_FLIT_DATACHECK_RANGE] = {`CHIE_DAT_FLIT_DATACHECK_WIDTH{1'b0}};
-        txdatflit_tmp1[`CHIE_DAT_FLIT_POISON_RANGE]    = {`CHIE_DAT_FLIT_POISON_WIDTH{1'b0}};
     end
 
     always@(posedge CLK or posedge RST)begin

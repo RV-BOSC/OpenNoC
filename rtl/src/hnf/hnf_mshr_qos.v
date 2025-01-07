@@ -59,7 +59,7 @@ module hnf_mshr_qos `HNF_PARAM
         rxreq_retry_enable_s0,
         qos_seq_pool_full_s0_q,
 
-        //outputs to hnf_mshr_global_monitor,ctl and fastpath
+        //outputs to hnf_mshr_global_monitor,ctl and bypass
         mshr_alloc_en_s0,
         mshr_alloc_en_s1_q,
         mshr_entry_idx_alloc_s0,
@@ -104,7 +104,7 @@ module hnf_mshr_qos `HNF_PARAM
     output wire                                      rxreq_retry_enable_s0;
     output reg                                       qos_seq_pool_full_s0_q;
 
-    //outputs to hnf_mshr_global_monitor,ctl and fastpath
+    //outputs to hnf_mshr_global_monitor,ctl and bypass
     output wire                                      mshr_alloc_en_s0;
     output reg                                       mshr_alloc_en_s1_q;
     output wire [`MSHR_ENTRIES_WIDTH-1:0]            mshr_entry_idx_alloc_s0;

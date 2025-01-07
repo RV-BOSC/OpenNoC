@@ -30,12 +30,14 @@ module tb_hnf;
   parameter CHIE_NID_WIDTH_PARAM = 7;
   parameter CHIE_DATA_WIDTH_PARAM = 256;
   parameter CHIE_BE_WIDTH_PARAM = 32;
-  parameter CHIE_DATACHECK_WIDTH_PARAM = 32;
-  parameter CHIE_POISON_WIDTH_PARAM = 4;
+  parameter CHIE_DATACHECK_WIDTH_PARAM = 0;
+  parameter CHIE_POISON_WIDTH_PARAM = 0;
   parameter CHIE_REQ_RSVDC_WIDTH_PARAM = 0;
   parameter CHIE_DAT_RSVDC_WIDTH_PARAM = 0;
   parameter HNF_MSHR_RNF_NUM_PARAM = 4;
+  parameter HNF_MSHR_RNI_NUM_PARAM = 0;
   parameter RNF_NID_LIST_PARAM = {7'd40, 7'd8};
+  parameter RNI_NID_LIST_PARAM = {7'd1};
   parameter HNF_NID_PARAM = 0;
   parameter SNF_NID_PARAM = 32;
   parameter XP_LCRD_NUM_PARAM = 15;
@@ -51,7 +53,6 @@ module tb_hnf;
   // hnf Parameters
   parameter PERIOD = 10;
 
-  //`define print_info
   `define tb_hnf
 
   `define WR_SF_STATUS 7'b1110000
@@ -412,7 +413,7 @@ module tb_hnf;
     $display("Running Tests...");
     forever begin
       if (typ[j] == `WR_SF_STATUS) begin
-`ifdef print_info
+`ifdef TB_INFO
         $display("\n****** Initializing Stage ******");
 `endif
         dbg_sf_valid_q    <= 1'b1;
@@ -420,7 +421,7 @@ module tb_hnf;
         dbg_sf_wr_ways_q  <= {{(`SF_WAY_NUM - 1) {1'b0}}, 1'b1};
         dbg_sf_wr_cline_q <= {{(`SF_CLINE_WIDTH - 4) {1'b0}}, wr_rn_status};
         j                 <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("SF status complete !");
 `endif
         @(posedge CLK);
@@ -431,7 +432,7 @@ module tb_hnf;
 
       if (typ[j] == `RD_SF_STATUS) begin
         repeat (15) @(posedge CLK);  //wait for HN write data to sn if any
-`ifdef print_info
+`ifdef TB_INFO
         $display("\n******* Comparing Stage *******");
 `endif
         dbg_sf_valid_q <= 1'b1;
@@ -449,7 +450,7 @@ module tb_hnf;
 `endif
         if (dbg_sf_rd_clines_q[3:0] == rd_rn_status) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("SF status match !");
 `endif
         end
@@ -477,7 +478,7 @@ module tb_hnf;
         dbg_loc_wr_ways_q  <= {{(`LOC_WAY_NUM - 1) {1'b0}}, 1'b1};
         dbg_loc_wr_cline_q <= {{(`LOC_CLINE_WIDTH - 2) {1'b0}}, wr_hn_status};
         j                  <= j + 2;  //skip wr_addr type
-`ifdef print_info
+`ifdef TB_INFO
         $display("L3 status complete !");
 `endif
         @(posedge CLK);
@@ -502,7 +503,7 @@ module tb_hnf;
 `endif
         if (dbg_loc_rd_clines_q[1:0] == rd_hn_status) begin
           j <= j + 2;  //skip wr_addr type
-`ifdef print_info
+`ifdef TB_INFO
           $display("L3 status match !");
 `endif
         end
@@ -530,7 +531,7 @@ module tb_hnf;
         dbg_l3_wr_ways_q <= {{(`LOC_WAY_NUM - 1) {1'b0}}, 1'b1};
         dbg_l3_wr_data_q <= wr_hnf;
         j                <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("L3 data   complete !");
 `endif
         @(posedge CLK);
@@ -555,7 +556,7 @@ module tb_hnf;
 `endif
         if (dbg_l3_rd_data_q == rd_hnf) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("L3 data   match !");
 `endif
         end
@@ -582,7 +583,7 @@ module tb_hnf;
         dbg_sn_addr    <= wr_addr;
         dbg_sn_wr_data <= wr_sni;
         j              <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("SN data   complete !");
 `endif
         @(posedge CLK);
@@ -602,7 +603,7 @@ module tb_hnf;
 `endif
         if (dbg_sn_rd_data == rd_sni) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("SN data   match !");
 `endif
         end
@@ -680,7 +681,9 @@ module tb_hnf;
       .CHIE_REQ_RSVDC_WIDTH_PARAM  (CHIE_REQ_RSVDC_WIDTH_PARAM),
       .CHIE_DAT_RSVDC_WIDTH_PARAM  (CHIE_DAT_RSVDC_WIDTH_PARAM),
       .HNF_MSHR_RNF_NUM_PARAM      (HNF_MSHR_RNF_NUM_PARAM),
+      .HNF_MSHR_RNI_NUM_PARAM      (HNF_MSHR_RNI_NUM_PARAM),
       .RNF_NID_LIST_PARAM          (RNF_NID_LIST_PARAM),
+      .RNI_NID_LIST_PARAM          (RNI_NID_LIST_PARAM),
       .HNF_NID_PARAM               (HNF_NID_PARAM),
       .SNF_NID_PARAM               (SNF_NID_PARAM),
       .XP_LCRD_NUM_PARAM           (XP_LCRD_NUM_PARAM),
@@ -766,7 +769,9 @@ module tb_hnf;
       .CHIE_REQ_RSVDC_WIDTH_PARAM  (CHIE_REQ_RSVDC_WIDTH_PARAM),
       .CHIE_DAT_RSVDC_WIDTH_PARAM  (CHIE_DAT_RSVDC_WIDTH_PARAM),
       .HNF_MSHR_RNF_NUM_PARAM      (HNF_MSHR_RNF_NUM_PARAM),
+      .HNF_MSHR_RNI_NUM_PARAM      (HNF_MSHR_RNI_NUM_PARAM),
       .RNF_NID_LIST_PARAM          (RNF_NID_LIST_PARAM),
+      .RNI_NID_LIST_PARAM          (RNI_NID_LIST_PARAM),
       .HNF_NID_PARAM               (HNF_NID_PARAM),
       .SNF_NID_PARAM               (SNF_NID_PARAM),
       .XP_LCRD_NUM_PARAM           (XP_LCRD_NUM_PARAM),
@@ -812,7 +817,7 @@ module tb_hnf;
         RXREQFLIT  <= rxreqflit;
         RXREQFLITV <= 1'b1;
         j          <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("\n****** Transaction Stage ******");
         $display("RN0 request sent");
 `endif
@@ -825,7 +830,7 @@ module tb_hnf;
         RXREQFLIT  <= rxreqflit;
         RXREQFLITV <= 1'b1;
         j          <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("\n****** Transaction Stage ******");
         $display("RN1 request sent");
 `endif
@@ -851,7 +856,7 @@ module tb_hnf;
         rn_rxrspflit  <= rxrspflit;
         rn_rxrspflitv <= 1'b1;
         j             <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN0 response sent");
 `endif
       end
@@ -862,7 +867,7 @@ module tb_hnf;
         rn_rxrspflit  <= flit[j][`CHIE_RSP_FLIT_RANGE];
         rn_rxrspflitv <= 1'b1;
         j             <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN1 response sent");
 `endif
       end
@@ -893,7 +898,7 @@ module tb_hnf;
         rn_rxdatflitv <= 1'b1;
         rn_rxdatflit  <= rxdatflit;
         j             <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN0 sent data0");
 `endif
       end
@@ -905,7 +910,7 @@ module tb_hnf;
         rn_rxdatflitv <= 1'b1;
         rn_rxdatflit  <= rxdatflit;
         j             <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN1 sent data0");
 `endif
       end
@@ -919,7 +924,7 @@ module tb_hnf;
         rn_rxdatflitv <= 1'b1;
         rn_rxdatflit  <= rxdatflit;
         j             <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN0 sent data1");
 `endif
       end
@@ -931,7 +936,7 @@ module tb_hnf;
         rn_rxdatflitv <= 1'b1;
         rn_rxdatflit  <= rxdatflit;
         j             <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN1 sent data1");
 `endif
       end
@@ -954,7 +959,7 @@ module tb_hnf;
           txdatflit[`CHIE_DAT_FLIT_HOMENID_RANGE] = `HNF0_ID;
           if (TXDATFLIT == txdatflit) begin
             j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
             $display("RN0 received data0 from HNF");
 `endif
           end
@@ -974,7 +979,7 @@ module tb_hnf;
           txdatflit[`CHIE_DAT_FLIT_HOMENID_RANGE] = `HNF0_ID;
           if (TXDATFLIT == txdatflit) begin
             j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
             $display("RN0 received data1 from HNF");
 `endif
           end
@@ -997,7 +1002,7 @@ module tb_hnf;
           txdatflit[`CHIE_DAT_FLIT_HOMENID_RANGE] = `HNF0_ID;
           if (TXDATFLIT == txdatflit) begin
             j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
             $display("RN1 received data0 from HNF");
 `endif
           end
@@ -1017,7 +1022,7 @@ module tb_hnf;
           txdatflit[`CHIE_DAT_FLIT_HOMENID_RANGE] = `HNF0_ID;
           if (TXDATFLIT == txdatflit) begin
             j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
             $display("RN1 received data1 from HNF");
 `endif
           end
@@ -1045,7 +1050,7 @@ module tb_hnf;
         txrspflit[`CHIE_RSP_FLIT_SRCID_RANGE] = `HNF0_ID;
         if (TXRSPFLIT == txrspflit) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("RN0 received response from HNF");
 `endif
         end
@@ -1065,7 +1070,7 @@ module tb_hnf;
         txrspflit[`CHIE_RSP_FLIT_SRCID_RANGE] = `HNF0_ID;
         if (TXRSPFLIT == txrspflit) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("RN1 received response from HNF");
 `endif
         end
@@ -1093,7 +1098,7 @@ module tb_hnf;
         if (txsnpflit[`CHIE_SNP_FLIT_FWDNID_RANGE] == 3) txsnpflit[`CHIE_SNP_FLIT_FWDNID_RANGE] = `RN1_ID;
         if (TXSNPFLIT == txsnpflit) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("RN0 received snoop from HNF");
 `endif
         end
@@ -1114,7 +1119,7 @@ module tb_hnf;
         if (txsnpflit[`CHIE_SNP_FLIT_FWDNID_RANGE] == 1) txsnpflit[`CHIE_SNP_FLIT_FWDNID_RANGE] = `RN0_ID;
         if (TXSNPFLIT == txsnpflit) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("RN1 received snoop from HNF");
 `endif
         end
@@ -1141,7 +1146,7 @@ module tb_hnf;
         g_rxrspflit[`CHIE_RSP_FLIT_SRCID_RANGE] = `SN_ID;
         if (sn_rxrspflit == g_rxrspflit) begin
           j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
           $display("RN0 received response from SN");
 `endif
         end
@@ -1172,7 +1177,7 @@ module tb_hnf;
         sn_txdatflitv_tmp <= 1'b1;
         sn_txdatflit_tmp  <= g_txdatflit;
         j                 <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN0 sent data0 to SN");
 `endif
 
@@ -1183,7 +1188,7 @@ module tb_hnf;
         sn_txdatflitv_tmp <= 1'b1;
         sn_txdatflit_tmp  <= g_txdatflit;
         j                 <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
         $display("RN0 sent data1 to SN");
 `endif
       end
@@ -1205,7 +1210,7 @@ module tb_hnf;
           g_rxdatflit[`CHIE_DAT_FLIT_HOMENID_RANGE] = `HNF0_ID;
           if (g_rxdatflit == sn_rxdatflit) begin
             j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
             $display("RN0 received data0 from SN");
 `endif
           end
@@ -1229,7 +1234,7 @@ module tb_hnf;
           g_rxdatflit[`CHIE_DAT_FLIT_HOMENID_RANGE] = `HNF0_ID;
           if (g_rxdatflit == sn_rxdatflit) begin
             j <= j + 1;
-`ifdef print_info
+`ifdef TB_INFO
             $display("RN0 received data1 from SN");
 `endif
           end
@@ -1255,10 +1260,10 @@ module tb_hnf;
       end
       repeat (50) @(posedge CLK);  //6
       p = 1;
-`ifdef print_info
+`ifdef TB_INFO
       $display("\n********* Result Stage *********");
+      $display("Test case %d pass", (k + 1));
 `endif
-      //$display("Test case %d pass",(k+1));
       @(posedge CLK);
     end
   end
