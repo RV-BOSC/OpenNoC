@@ -92,7 +92,7 @@
 `define SNF_QOS_LOW_POOL_NUM                   SNF_MSHR_ENTRIES_NUM_PARAM/2
 `define SNF_RET_BANK_CNT_WIDTH                 10
 `define SNF_RET_BANK_ENTRIES_NUM               SNF_MSHR_HNF_NUM_PARAM
-`define SNF_RET_BANK_ENTRIES_WIDTH             (SNF_MSHR_HNF_NUM_PARAM > 1) ? $clog2(SNF_MSHR_HNF_NUM_PARAM) : 1'b1
+`define SNF_RET_BANK_ENTRIES_WIDTH             ((SNF_MSHR_HNF_NUM_PARAM > 1) ? $clog2(SNF_MSHR_HNF_NUM_PARAM) : 1)
 `define SNF_MAX_WAIT_CNT_WIDTH                 4
 `define SNF_LOW2HIGH_MAX_CNT                   10
 

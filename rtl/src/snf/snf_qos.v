@@ -654,7 +654,7 @@ module snf_qos `SNF_PARAM
     assign l_to_h_disbale  = (l_wait_cnt_q  >= `SNF_LOW2HIGH_MAX_CNT);
 
     //high present win logic
-    assign h_present_win_sx = high_present & mshr_retired_valid_sx & ~l_to_h_disbale & (qos_pool_retire_class_sx <= `SNF_QOS_CLASS_HIGH);
+    assign h_present_win_sx = high_present & mshr_retired_valid_sx & ((qos_pool_retire_class_sx == `SNF_QOS_CLASS_HIGH) ? 1'b1 : (~l_to_h_disbale));
 
     always @(posedge clk or posedge rst) begin: update_h_present_win_timing_logic
         if (rst == 1'b1)

@@ -84,7 +84,7 @@
 `define HNI_QOS_LOW_POOL_NUM                   HNI_MSHR_ENTRIES_NUM_PARAM/2
 `define HNI_RET_BANK_CNT_WIDTH                 10
 `define HNI_RET_BANK_ENTRIES_NUM               HNI_MSHR_RNF_NUM_PARAM
-`define HNI_RET_BANK_ENTRIES_WIDTH             $clog2(HNI_MSHR_RNF_NUM_PARAM)
+`define HNI_RET_BANK_ENTRIES_WIDTH             ((HNI_MSHR_RNF_NUM_PARAM > 1) ? $clog2(HNI_MSHR_RNF_NUM_PARAM) : 1)
 `define HNI_MAX_WAIT_CNT_WIDTH                 4
 `define HNI_LOW2HIGH_MAX_CNT                   10
 `define HNI_RETRY_ACKQ_DATA_DEPTH              15
