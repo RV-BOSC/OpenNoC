@@ -156,8 +156,8 @@
 `define QOS_MED_POOL_NUM                   ((HNF_MSHR_ENTRIES_NUM_PARAM == 32)? 8 : 16)
 `define QOS_LOW_POOL_NUM                   ((HNF_MSHR_ENTRIES_NUM_PARAM == 32)? 15 : 31)
 `define RET_BANK_CNT_WIDTH                 10
-`define RET_BANK_ENTRIES_NUM               HNF_MSHR_RNF_NUM_PARAM
-`define RET_BANK_ENTRIES_WIDTH             ((HNF_MSHR_RNF_NUM_PARAM == 1)? 1 : $clog2(HNF_MSHR_RNF_NUM_PARAM))
+`define RET_BANK_ENTRIES_NUM               `RN_NUM
+`define RET_BANK_ENTRIES_WIDTH             ((`RET_BANK_ENTRIES_NUM == 1)? 1 : $clog2(`RET_BANK_ENTRIES_NUM))
 `define MAX_WAIT_CNT_WIDTH                 4
 `define LOW2MED_MAX_CNT                    5
 `define MED2HIGH_MAX_CNT                   5

@@ -286,19 +286,19 @@ module hnf_mshr_qos `HNF_PARAM
     reg [`QOS_CLASS_WIDTH-1:0]                       qos_class_pool_s1_q;
     reg                                              mshr_dyn_or_seq_alloc_s1_q;
     reg [`CHIE_RSP_FLIT_PCRDTYPE_WIDTH-1:0]          pcrdgnt_pcrdtype_s2;
-    reg [`CHIE_REQ_FLIT_SRCID_WIDTH-1:0]             ret_bank_srcid_s1_q[0:HNF_MSHR_RNF_NUM_PARAM-1];
+    reg [`CHIE_REQ_FLIT_SRCID_WIDTH-1:0]             ret_bank_srcid_s1_q[0:`RET_BANK_ENTRIES_NUM-1];
     reg [`RET_BANK_ENTRIES_NUM-1:0]                  ret_bank_entry_v_s1_q;
     reg [`RET_BANK_ENTRIES_WIDTH-1:0]                ret_bank_entry_idx_s1_q;
     reg [`RET_BANK_ENTRIES_NUM-1:0]                  ret_bank_entry_ptr_s0;
     reg [`RET_BANK_ENTRIES_NUM-1:0]                  ret_cnt_inc_ptr_s1_q;
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_hh_entry_s2_q[0:HNF_MSHR_RNF_NUM_PARAM-1];
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_h_entry_s2_q[0:HNF_MSHR_RNF_NUM_PARAM-1];
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_m_entry_s2_q[0:HNF_MSHR_RNF_NUM_PARAM-1];
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_l_entry_s2_q[0:HNF_MSHR_RNF_NUM_PARAM-1];
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_hh_entry_ns_s1[0:HNF_MSHR_RNF_NUM_PARAM-1];
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_h_entry_ns_s1[0:HNF_MSHR_RNF_NUM_PARAM-1];
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_m_entry_ns_s1[0:HNF_MSHR_RNF_NUM_PARAM-1];
-    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_l_entry_ns_s1[0:HNF_MSHR_RNF_NUM_PARAM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_hh_entry_s2_q[0:`RET_BANK_ENTRIES_NUM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_h_entry_s2_q[0:`RET_BANK_ENTRIES_NUM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_m_entry_s2_q[0:`RET_BANK_ENTRIES_NUM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_l_entry_s2_q[0:`RET_BANK_ENTRIES_NUM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_hh_entry_ns_s1[0:`RET_BANK_ENTRIES_NUM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_h_entry_ns_s1[0:`RET_BANK_ENTRIES_NUM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_m_entry_ns_s1[0:`RET_BANK_ENTRIES_NUM-1];
+    reg [`RET_BANK_CNT_WIDTH-1:0]                    ret_cnt_l_entry_ns_s1[0:`RET_BANK_ENTRIES_NUM-1];
     reg                                              hh_present_win_s2_q;
     reg                                              h_present_win_s2_q;
     reg                                              m_present_win_s2_q;
@@ -1373,7 +1373,7 @@ module hnf_mshr_qos `HNF_PARAM
         integer i;
         if(ret_bank_alloc_en_s0 && (&ret_bank_entry_v_s1_q))begin
             $display($sformatf("Fatal: the number of retry_bank srcid overflow when rxreq received a flit with srcid: %h",li_mshr_rxreq_srcid_s0));
-            for(i=0;i<HNF_MSHR_RNF_NUM_PARAM;i=i+1)begin
+            for(i=0;i<`RET_BANK_ENTRIES_NUM;i=i+1)begin
                 $display($sformatf("The srcid of retry_bank entry %d : %0h",i,ret_bank_srcid_s1_q[i]));
             end
             `display_fatal(0,"\n")
@@ -1382,7 +1382,7 @@ module hnf_mshr_qos `HNF_PARAM
 
                   always @(posedge clk)begin
                       integer i;
-                      for(i=0;i<HNF_MSHR_RNF_NUM_PARAM;i=i+1)begin
+                      for(i=0;i<`RET_BANK_ENTRIES_NUM;i=i+1)begin
                           if(ret_is_hh_s1 && ret_cnt_inc_ptr_s1_q[i] && (&ret_cnt_hh_entry_s2_q[i]))begin
                               `display_fatal(0,$sformatf("The number of srcid: %0h retry(HH) overflow\n",ret_bank_srcid_s1_q[i]));
                           end
