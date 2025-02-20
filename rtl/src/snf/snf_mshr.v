@@ -122,7 +122,7 @@ module snf_mshr `SNF_PARAM
     output wire [`CHIE_REQ_FLIT_ADDR_WIDTH-1:0]         rxreq_dbf_addr_s1;
     output wire                                         rxreq_dbf_wr_s1;
     output wire [`CHIE_REQ_FLIT_SIZE_WIDTH-1:0]         rxreq_dbf_size_s1;
-    output wire [`AXI4_AWSIZE_WIDTH-1:0]                 rxreq_dbf_axlen_s1;
+    output wire [`AXI4_ARLEN_WIDTH-1:0]                 rxreq_dbf_axlen_s1;
     output wire [`SNF_MSHR_ENTRIES_WIDTH-1:0]           rxreq_dbf_entry_idx_s1;
     input  wire                                         dbf_mshr_rdata_en_sx;
     input  wire [`SNF_MSHR_ENTRIES_WIDTH-1:0]           dbf_mshr_rdata_idx_sx;
