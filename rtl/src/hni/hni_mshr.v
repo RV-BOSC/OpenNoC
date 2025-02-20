@@ -610,6 +610,21 @@ module hni_mshr `HNI_PARAM
                 else if(mshr_entry_alloc_sx[entry] == 1'b1)
                     rxreq_ccid_s1_q[entry] <= rxreq_addr_s0[5:4];
             end
+
+            always @(posedge clk or posedge rst)begin : mshr_excl_pass_s_q_logic
+                if(rst == 1'b1)begin
+                    rxreq_excl_pass_s2_q[entry] <= 1'b0;
+                    rxreq_excl_fail_s2_q[entry] <= 1'b0;
+                end   
+                else if(retired_entry_sx1_q[entry] == 1'b1) begin
+                    rxreq_excl_pass_s2_q[entry] <= 1'b0;
+                    rxreq_excl_fail_s2_q[entry] <= 1'b0;                    
+                end
+                else if(rxreq_alloc_en_s1_q && (mshr_entry_idx_alloc_s1_q == entry))begin
+                    rxreq_excl_pass_s2_q[entry] <= excl_pass_s1;
+                    rxreq_excl_fail_s2_q[entry] <= excl_fail_s1; 
+                end
+            end
         end
     endgenerate
 
@@ -621,23 +636,6 @@ module hni_mshr `HNI_PARAM
         else begin
             rxreq_alloc_en_s1_q         <= rxreq_alloc_en_s0;
             mshr_entry_idx_alloc_s1_q   <= mshr_entry_idx_alloc_s0;
-        end
-    end
-
-    always @(posedge clk or posedge rst)begin : mshr_excl_pass_s_q_logic
-        for (k=0; k < `HNI_MSHR_ENTRIES_NUM; k=k+1)begin
-            if(rst == 1'b1)begin
-                rxreq_excl_pass_s2_q[k] <= 1'b0;
-                rxreq_excl_fail_s2_q[k] <= 1'b0;
-            end   
-            else if(retired_entry_sx1_q[k] == 1'b1) begin
-                rxreq_excl_pass_s2_q[k] <= 1'b0;
-                rxreq_excl_fail_s2_q[k] <= 1'b0;                    
-            end
-            else if(rxreq_alloc_en_s1_q && (mshr_entry_idx_alloc_s1_q == k))begin
-                rxreq_excl_pass_s2_q[k] <= excl_pass_s1;
-                rxreq_excl_fail_s2_q[k] <= excl_fail_s1; 
-            end
         end
     end
 
