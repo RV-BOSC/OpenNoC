@@ -11,8 +11,6 @@
 ./misc/hnf_sel_bit_from_nxt.v
 ./misc/hnf_biq.v
 ./misc/hnf_sel_bit_from_vec.v
-./misc/hni_sel_bit_from_vec.v
-./misc/hni_fifo.v
 ./misc/assert_checker.sv
 ./misc/poll_function.v
 ./misc/sync_fifo.v

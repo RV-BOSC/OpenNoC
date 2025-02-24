@@ -195,8 +195,8 @@ module hni_qos `HNI_PARAM
     reg [`HNI_RET_BANK_ENTRIES_NUM-1:0]              ret_bank_entry_v_s1_q;
     reg [`HNI_RET_BANK_ENTRIES_WIDTH-1:0]            ret_bank_entry_idx_s1_q;
     reg [`HNI_RET_BANK_ENTRIES_NUM-1:0]              ret_bank_entry_ptr_s0;
-    reg [`HNI_RET_BANK_ENTRIES_NUM-1:0]              ret_cnt_h_inc_s1_q;
-    reg [`HNI_RET_BANK_ENTRIES_NUM-1:0]              ret_cnt_l_inc_s1_q;
+    reg [`HNI_RET_BANK_ENTRIES_NUM-1:0]              h_retry_req_entry_q;
+    reg [`HNI_RET_BANK_ENTRIES_NUM-1:0]              l_retry_req_entry_q;
     reg [`HNI_RET_BANK_CNT_WIDTH-1:0]                ret_cnt_h_entry_s2_q[0:HNI_MSHR_RNF_NUM_PARAM-1];
     reg [`HNI_RET_BANK_CNT_WIDTH-1:0]                ret_cnt_l_entry_s2_q[0:HNI_MSHR_RNF_NUM_PARAM-1];
     reg [`HNI_RET_BANK_CNT_WIDTH-1:0]                ret_cnt_h_entry_ns_s1[0:HNI_MSHR_RNF_NUM_PARAM-1];
@@ -498,18 +498,20 @@ module hni_qos `HNI_PARAM
     assign retry_ack_fifo_push = rxreq_retry_enable_s0 & (~retry_ack_fifo_full | (retry_ack_fifo_full & txrsp_retryack_won_s1));
     assign retry_ack_fifo_pop  = txrsp_retryack_won_s1 & ~retry_ack_fifo_empty;
 
-    hni_fifo #(
-                       .FIFO_WIDTH (`HNI_RETRY_ACKQ_DATA_WIDTH    ),
-                       .FIFO_DEPTH (`HNI_RETRY_ACKQ_DATA_DEPTH    )
+    sync_fifo #(
+                       .FIFO_ENTRIES_WIDTH (`HNI_RETRY_ACKQ_DATA_WIDTH    ),
+                       .FIFO_ENTRIES_DEPTH (`HNI_RETRY_ACKQ_DATA_DEPTH    ),
+                       .FIFO_BYP_ENABLE    (1'b0                          )
                    )retry_ack_fifo(
                        .clk        (clk                       ),
                        .rst        (rst                       ),
-                       .wr_en      (retry_ack_fifo_push       ),
-                       .wr_data    (retry_ackq_datain_s0      ),
-                       .rd_en      (retry_ack_fifo_pop        ),
-                       .rd_data    (retry_ack_fifo_dataout_s1 ),
+                       .push       (retry_ack_fifo_push       ),
+                       .pop        (retry_ack_fifo_pop        ),
+                       .data_in    (retry_ackq_datain_s0      ),
+                       .data_out   (retry_ack_fifo_dataout_s1 ),
                        .empty      (retry_ack_fifo_empty      ),
-                       .full       (retry_ack_fifo_full       )
+                       .full       (retry_ack_fifo_full       ),
+                       .count      (                          )
                    );
 
     //retry_ack_fifo
@@ -648,6 +650,18 @@ module hni_qos `HNI_PARAM
 
     assign l_retry_req_entry = (ret_bank_entry_v_s1_q & ~ret_cnt_l_zero) | ret_cnt_l_inc_s0;
 
+
+    always @(posedge clk or posedge rst) begin: update_retry_req_entry_timing_logic
+        if (rst == 1'b1) begin
+            h_retry_req_entry_q <= {`HNI_RET_BANK_ENTRIES_NUM{1'b0}};
+            l_retry_req_entry_q <= {`HNI_RET_BANK_ENTRIES_NUM{1'b0}};
+        end
+        else begin
+            h_retry_req_entry_q <= h_retry_req_entry;
+            l_retry_req_entry_q <= l_retry_req_entry;
+        end
+    end
+
     assign high_present = retry_h_num_one ? (|(h_retry_req_entry & ~ret_cnt_h_dec_s1)) : (|h_retry_req_entry);
 
     assign low_present = retry_l_num_one ? (|(l_retry_req_entry & ~ret_cnt_l_dec_s1)) : (|l_retry_req_entry);
@@ -710,13 +724,17 @@ module hni_qos `HNI_PARAM
     assign pcrdgnt_req_enable_s1 = h_present_win_sx1_q | l_present_win_sx1_q;
 
     //h pcrdgrant srcid logic
-    hni_sel_bit_from_vec `HNI_PARAM_INST
-                    h_sel_bit_from_vec(
+    poll_function #(
+                        .POLL_ENTRIES_NUM(`HNI_MSHR_RNF_NUM_PARAM),
+                        .POLL_MODE       (1                     )
+    )h_sel_bit_from_vec(
                         .clk               (clk                 ),
                         .rst               (rst                 ),
-                        .req_entry_vec     (h_retry_req_entry   ),
-                        .upd_start_entry   (h_present_win_sx  ),
-                        .req_entry_ptr_sel (ret_cnt_h_dec_ptr_sx1)
+                        .entry_vec         (h_retry_req_entry_q ),
+                        .upd               (h_present_win_sx    ),
+                        .sel_entry         (ret_cnt_h_dec_ptr_sx1),
+                        .found             (                     ),
+                        .sel_index         (                     )
                     );
 
     always @* begin: high_pcrdgrant_srcid_comb_logic
@@ -727,13 +745,17 @@ module hni_qos `HNI_PARAM
     end
 
     //l pcrdgrant srcid logic
-    hni_sel_bit_from_vec `HNI_PARAM_INST
-                    l_sel_bit_from_vec(
+    poll_function #(
+                        .POLL_ENTRIES_NUM(`HNI_MSHR_RNF_NUM_PARAM),
+                        .POLL_MODE       (1                     )
+    )l_sel_bit_from_vec(
                         .clk               (clk                 ),
                         .rst               (rst                 ),
-                        .req_entry_vec     (l_retry_req_entry   ),
-                        .upd_start_entry   (l_present_win_sx  ),
-                        .req_entry_ptr_sel (ret_cnt_l_dec_ptr_sx1)
+                        .entry_vec         (l_retry_req_entry_q ),
+                        .upd               (l_present_win_sx    ),
+                        .sel_entry         (ret_cnt_l_dec_ptr_sx1),
+                        .found             (                     ),
+                        .sel_index         (                     )
                     );
 
     always @* begin: low_pcrdgrant_srcid_comb_logic
@@ -766,18 +788,20 @@ module hni_qos `HNI_PARAM
     assign pcrdgrant_fifo_push = pcrdgnt_req_enable_s1 & (~pcrdgrant_fifo_full | (pcrdgrant_fifo_full & txrsp_pcrdgnt_won_s2));
     assign pcrdgrant_fifo_pop  = txrsp_pcrdgnt_won_s2 & ~pcrdgrant_fifo_empty;
 
-    hni_fifo #(
-                       .FIFO_WIDTH (`HNI_PCRDGRANTQ_DATA_WIDTH    ),
-                       .FIFO_DEPTH (`HNI_PCRDGRANTQ_DATA_DEPTH    )
+    sync_fifo #(
+                       .FIFO_ENTRIES_WIDTH (`HNI_PCRDGRANTQ_DATA_WIDTH    ),
+                       .FIFO_ENTRIES_DEPTH (`HNI_PCRDGRANTQ_DATA_DEPTH    ),
+                       .FIFO_BYP_ENABLE    (1'b0                          )
                    )pcrdgrant_fifo(
                        .clk        (clk                       ),
                        .rst        (rst                       ),
-                       .wr_en      (pcrdgrant_fifo_push       ),
-                       .wr_data    (pcrdgrant_fifo_datain_s1  ),
-                       .rd_en      (pcrdgrant_fifo_pop        ),
-                       .rd_data    (pcrdgrant_fifo_dataout_s2 ),
+                       .push       (pcrdgrant_fifo_push       ),
+                       .pop        (pcrdgrant_fifo_pop        ),
+                       .data_in    (pcrdgrant_fifo_datain_s1  ),
+                       .data_out   (pcrdgrant_fifo_dataout_s2 ),
                        .empty      (pcrdgrant_fifo_empty      ),
-                       .full       (pcrdgrant_fifo_full       )
+                       .full       (pcrdgrant_fifo_full       ),
+                       .count      (                          )
                    );
 
     //decode pcrdgrant part fields from fifo
